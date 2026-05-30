@@ -101,171 +101,85 @@ Hệ thống được cấu trúc logic, chia làm 2 App con chính:
 
 ---
 
-## 🎯 Kịch Bản Demo Test Hệ Thống Trên Postman
+## 🎯 Kịch Bản Demo Test Tự Động Hóa Qua Postman Collection
 
-Hãy thực hiện tuần tự theo kịch bản 10 bước dưới đây để trình diễn trọn vẹn sức mạnh xử lý nghiệp vụ tự động hóa và kiến trúc OOP của đồ án trước Hội đồng/Giảng viên chấm thi.
+Để giúp buổi thuyết trình đồ án diễn ra trơn tru nhất và gây ấn tượng mạnh với giảng viên, hệ thống đã đi kèm một tệp **Postman Collection tích hợp kịch bản kiểm thử tự động 100%**:
 
-### BƯỚC 1: Đăng ký tài khoản mới (`Register`)
-- **API:** `POST http://127.0.0.1:8000/api/v1/users/register/`
-- **Body (JSON):**
-```json
-{
-  "username": "student_uit",
-  "email": "student@uit.edu.vn",
-  "password": "SecretPassword123",
-  "passwordConfirm": "SecretPassword123",
-  "name": "Nguyễn Văn Sinh Viên",
-  "birthday": "2004-05-15",
-  "phoneNumber": "0987654321",
-  "address": "UIT, Thủ Đức, TP.HCM"
-}
-```
-- **Kết quả mong đợi:** Mã HTTP `201 Created`. JSON trả về chứa ID của User dạng UUID và password đã được băm mã hóa một chiều.
+Tệp cấu hình: **[quan_ly_thu_chi_postman_collection.json](file:///Users/dang/Documents/UIT/python312/doan/quan_ly_thu_chi/quan_ly_thu_chi_postman_collection.json)**
 
 ---
 
-### BƯỚC 2: Đăng nhập nhận Token xác thực (`Login`)
-- **API:** `POST http://127.0.0.1:8000/api/v1/users/login/`
-- **Body (JSON) - Đăng nhập bằng Email:**
-```json
-{
-  "usernameOrEmail": "student@uit.edu.vn",
-  "password": "SecretPassword123"
-}
-```
-- **Kết quả mong đợi:** Mã HTTP `200 OK`. JSON trả về chứa Token:
-```json
-{
-  "user": { ... },
-  "access": "eyJhbGciOi...",
-  "refresh": "eyJhbGciOi..."
-}
-```
-> ⚠️ **HƯỚNG DẪN POSTMAN:** Copy giá trị chuỗi dài trong khóa `"access"`. Tại Postman, vào tab **Authorization** -> chọn Type **Bearer Token** -> Dán chuỗi này vào ô **Token** để thực hiện tất cả các bước tiếp theo.
+### 📥 Bước 1: Nhập Collection vào Postman
+1. Mở ứng dụng **Postman** trên máy tính.
+2. Nhấn nút **Import** ở góc trên cùng bên trái màn hình.
+3. Chọn tệp `quan_ly_thu_chi_postman_collection.json` nằm tại thư mục gốc của đồ án để tải lên.
+4. Thư mục **"UIT - Đồ án Quản lý Thu Chi Backend API"** sẽ xuất hiện trong danh sách Collections của bạn với đầy đủ **13 request** được đánh số thứ tự tuần tự.
 
 ---
 
-### BƯỚC 3: Tạo Ví tiền nguồn (`Wallet 1`)
-- **API:** `POST http://127.0.0.1:8000/api/v1/wallets/`
-- **Body (JSON):**
-```json
-{
-  "name": "Ví ATM Techcombank",
-  "type": "ATM",
-  "amount": "5000000.00"
-}
-```
-- **Kết quả mong đợi:** Trả về thông tin Ví mới tạo với số dư ban đầu là **5.000.000 đ**. Lưu lại `id` (dạng UUID) của ví này làm `VÍ_A`.
+### ⚙️ Bước 2: Cơ chế Tự động hóa Biến số (Auto-Variables Script)
+Collection này đã được tích hợp mã Script JavaScript trong tab **Tests** của Postman. Khi bạn chạy tuần tự từ trên xuống dưới, hệ thống sẽ **tự động bắt lấy các ID dạng UUID và Token xác thực** từ phản hồi JSON rồi truyền trực tiếp cho các request tiếp theo. Bạn **hoàn toàn không cần copy/paste thủ công** bất kỳ thông tin nào!
+
+Các biến số tự động bao gồm:
+- `base_url`: Địa chỉ server mặc định là `http://127.0.0.1:8000`.
+- `access_token`: Token JWT của tài khoản, tự động cập nhật sau khi chạy xong request Đăng nhập.
+- `wallet_a_id` / `wallet_b_id`: ID tự sinh của Ví ATM Techcombank và Ví Momo.
+- `category_id`: ID tự sinh của danh mục "Ăn uống hàng ngày".
+- `budget_id`: ID tự sinh của Ngân sách tháng.
+- `transaction_id`: ID tự sinh của giao dịch ăn uống 950.000 đ.
 
 ---
 
-### BƯỚC 4: Tạo Ví tiền đích (`Wallet 2`)
-- **API:** `POST http://127.0.0.1:8000/api/v1/wallets/`
-- **Body (JSON):**
-```json
-{
-  "name": "Ví Momo Tiết Kiệm",
-  "type": "Ví điện tử",
-  "amount": "1000000.00"
-}
-```
-- **Kết quả mong đợi:** Trả về Ví Momo có số dư **1.000.000 đ**. Lưu lại `id` của ví này làm `VÍ_B`.
+### 🏃‍♂️ Bước 3: Thực hiện Kịch Bản Demo 13 Bước
 
----
+Hãy nhấp chuột và gửi (**Send**) từng request theo đúng thứ tự đánh số:
 
-### BƯỚC 5: Tạo Danh mục chi tiêu (`Category`)
-- **API:** `POST http://127.0.0.1:8000/api/v1/categories/`
-- **Body (JSON):**
-```json
-{
-  "name": "Ăn uống hàng ngày",
-  "type": "expense",
-  "parentId": null
-}
-```
-- **Kết quả mong đợi:** Trả về danh mục thuộc loại Chi tiêu (`expense`). Lưu lại `id` làm `DANH_MỤC_X`.
+1. **`01. Đăng ký tài khoản`**: 
+   - Đăng ký tài khoản cá nhân hóa cho sinh viên:
+     * *Username:* `leminhdang`
+     * *Email:* `leminhdang@uit.edu.vn`
+     * *Password:* `123123123a`
+     * *Name:* `Lê Minh Đăng`
+   - *Logic OOP:* Mật khẩu được mã hóa an toàn bằng thuật toán băm PBKDF2 của Django.
 
----
+2. **`02. Đăng nhập hệ thống (Auto Token)`**:
+   - Sử dụng Email đăng nhập để nhận Token JWT. Postman Script sẽ tự động chụp lấy Access Token và lưu làm khóa xác thực Bearer Token cho các API tiếp theo.
 
-### BƯỚC 6: Tạo Ngân sách giới hạn chi tiêu (`Budget`)
-Chúng ta sẽ cài đặt một Ngân sách ăn uống với hạn mức là 1.000.000 đ.
-- **API:** `POST http://127.0.0.1:8000/api/v1/budgets/`
-- **Body (JSON):** *(Thay `DANH_MỤC_X` và `VÍ_A` bằng UUID thực tế đã lưu ở trên)*
-```json
-{
-  "name": "Ngân Sách Ăn Uống Tháng 5",
-  "categoryId": "DANH_MỤC_X",
-  "amount": "1000000.00",
-  "loop": false,
-  "fromDate": "2026-05-01",
-  "toDate": "2026-05-31",
-  "note": "Hạn mức tối đa cho việc ăn uống",
-  "wallets": [
-    "VÍ_A"
-  ]
-}
-```
-- **Kết quả mong đợi:** Hệ thống tự động gán số dư ngân sách còn lại `"remain": "1000000.00"`.
+3. **`03. Tạo Ví Techcombank (Ví A)`**:
+   - Khởi tạo ví ATM Techcombank có số dư **5.000.000 đ**. ID của ví tự động được lưu vào biến `wallet_a_id`.
 
----
+4. **`04. Tạo Ví Momo (Ví B)`**:
+   - Khởi tạo ví Momo Tiết kiệm có số dư **1.000.000 đ**. ID của ví tự động được lưu vào biến `wallet_b_id`.
 
-### BƯỚC 7: Thực hiện Chi tiêu & Trình diễn Tự động hóa nghiệp vụ (BƯỚC QUAN TRỌNG NHẤT 🌟)
-Tạo giao dịch Chi tiêu ăn uống trị giá **950.000 đ** bằng `VÍ_A` để kiểm tra logic trừ tiền ví, trừ hạn mức ngân sách và bắn thông báo cảnh báo sớm (Vì số dư ngân sách còn 50.000 đ < 10%).
+5. **`05. Tạo Danh mục chi ăn uống`**:
+   - Tạo danh mục "Ăn uống hàng ngày" thuộc loại Chi tiêu (`expense`). ID danh mục tự động lưu vào biến `category_id`.
 
-- **API:** `POST http://127.0.0.1:8000/api/v1/transactions/`
-- **Body (JSON):**
-```json
-{
-  "walletId": "VÍ_A",
-  "categoryId": "DANH_MỤC_X",
-  "amount": "950000.00",
-  "type": "expense",
-  "note": "Đi ăn lẩu buffet UIT với lớp"
-}
-```
-- **Logic tự động hóa xảy ra ngầm trong DB:**
-  1. Số dư `VÍ_A` tự động giảm từ 5.000.000 đ xuống **4.050.000 đ**.
-  2. Số dư ngân sách còn lại `remain` tự động trừ đi 950.000 đ, chỉ còn **50.000 đ**.
-  3. Do số dư ngân sách 50.000 đ nhỏ hơn 10% hạn mức ban đầu (100.000 đ), hệ thống **tự tạo bản ghi Notification cảnh báo**.
-- **Cách chứng minh với giảng viên:**
-  - Gọi lại API xem Ví tiền (`GET /api/v1/wallets/`) -> Số dư đã đổi thành 4.050.000 đ.
-  - Gọi lại API xem Ngân sách (`GET /api/v1/budgets/`) -> Số tiền còn lại `remain` chỉ còn 50.000 đ.
-  - Gọi API xem Cảnh báo (`GET /api/v1/notifications/`) -> Nhận về thông báo cảnh báo vượt ngưỡng!
+6. **`06. Thiết lập Ngân sách hạn mức`**:
+   - Tạo hạn mức ngân sách ăn uống tối đa **1.000.000 đ** áp dụng cho `Ví A` (Techcombank). Hệ thống tự khởi tạo số dư còn lại `remain = 1.000.000đ`.
 
----
+7. **`07. Ghi nhận giao dịch chi tiêu (Auto trừ ví & trừ ngân sách)`**:
+   - Tạo một giao dịch ăn uống buffet UIT trị giá **950.000 đ** từ `Ví A`.
+   - *Logic tự động hóa ngầm cực kỳ ấn tượng:*
+     - Số dư `Ví A` tự động giảm còn **4.050.000 đ**.
+     - Số dư ngân sách `remain` tự trừ còn **50.000 đ** (dưới 10% hạn mức ban đầu).
+     - Hệ thống phát hiện ngân sách sắp cạn kiệt $\rightarrow$ Tự động sinh ra 1 cảnh báo tài chính trong bảng `Notification` lưu vào cơ sở dữ liệu.
 
-### BƯỚC 8: Chuyển khoản nội bộ giữa 2 ví (`Transfer`)
-Chuyển khoản 500.000 đ từ `VÍ_A` sang `VÍ_B`.
-- **API:** `POST http://127.0.0.1:8000/api/v1/transactions/transfer/`
-- **Body (JSON):**
-```json
-{
-  "fromWalletId": "VÍ_A",
-  "toWalletId": "VÍ_B",
-  "amount": "500000.00",
-  "note": "Chuyển tiền ăn uống từ thẻ ATM sang Momo"
-}
-```
-- **Kết quả mong đợi:** Mã HTTP `200 OK`. 
-  - `VÍ_A` (ATM) tự trừ 500.000 đ, số dư còn lại: **3.550.000 đ**.
-  - `VÍ_B` (Momo) tự cộng 500.000 đ, số dư mới: **1.500.000 đ**.
-  - Tự sinh ra 2 giao dịch Thu và Chi làm lịch sử đối chiếu chuyển khoản.
+8. **`08. Chuyển khoản nội bộ (Ví A -> Ví B)`**:
+   - Gửi yêu cầu chuyển khoản **500.000 đ** từ `Ví A` (Techcombank) sang `Ví B` (Momo).
+   - *Sức mạnh xử lý giao dịch nguyên tử:* `Ví A` trừ 500k (còn 3.550.000đ), `Ví B` được cộng 500k (lên 1.500.000đ). Hệ thống tự sinh 2 giao dịch lịch sử (1 thu, 1 chi) để đối chiếu lịch sử rõ ràng.
 
----
+9. **`09. Kiểm tra danh sách Cảnh báo`**:
+   - API `GET /api/v1/notifications/` trả về thông báo cảnh báo vượt hạn mức ngân sách đã tự động phát sinh từ Bước 7.
 
-### BƯỚC 9: Kiểm tra API Thống kê chuyên sâu phục vụ vẽ Biểu đồ (`Reports`)
-- **API 1 (Tổng quan tháng):** `GET http://127.0.0.1:8000/api/v1/transactions/reports/summary/`
-  - *Dữ liệu trả về:* `"totalIncome": 500000.00` (từ giao dịch chuyển khoản Momo nhận), `"totalExpense": 1450000.00` (giao dịch ăn uống 950k + chuyển khoản ví ATM 500k), số dư ròng âm trong tháng.
-- **API 2 (Phân phối danh mục):** `GET http://127.0.0.1:8000/api/v1/transactions/reports/categories/`
-  - *Dữ liệu trả về:* Tỷ lệ % chi tiêu của từng danh mục trong tháng (Ví dụ: "Ăn uống hàng ngày": 65.52%, "Chuyển khoản nội bộ": 34.48%).
-- **API 3 (Biến động theo ngày):** `GET http://127.0.0.1:8000/api/v1/transactions/reports/daily/`
-  - *Dữ liệu trả về:* Mảng danh sách dòng tiền (Thu vs Chi) theo các ngày của tháng hiện tại.
+10. **`10. Thống kê dòng tiền Thu vs Chi trong tháng`**:
+    - Trả về JSON tổng kết dòng tiền Thu, Chi và số dư ròng trong tháng hiện tại của người dùng.
 
----
+11. **`11. Thống kê Tỷ lệ % chi tiêu theo Danh mục`**:
+    - Trả về tỉ lệ phần trăm chi tiêu phân bổ theo danh mục (Sẵn sàng phục vụ vẽ Biểu đồ tròn trên Client).
 
-### BƯỚC 10: Xóa giao dịch để hoàn trả lại trạng thái (Kiểm thử tính bù trừ)
-Nếu chúng ta xóa giao dịch ăn uống buffet 950.000 đ ở Bước 7:
-- **API:** `DELETE http://127.0.0.1:8000/api/v1/transactions/{ID_GIAO_DỊCH_950K}/`
-- **Kết quả mong đợi:** 
-  - `VÍ_A` tự động được hoàn tiền 950.000 đ, tăng lại từ 3.550.000 đ lên **4.500.000 đ**.
-  - Số dư ngân sách `remain` cũng tự động được hoàn trả, tăng lại từ 50.000 đ lên **1.000.000 đ** như lúc đầu.
+12. **`12. Thống kê Dòng tiền biến động theo Ngày`**:
+    - Trả về số liệu Thu vs Chi theo từng ngày để phục vụ vẽ Biểu đồ cột dòng tiền.
+
+13. **`13. Xóa Giao dịch (Tự hoàn trả ví & ngân sách)`**:
+    - Xóa giao dịch ăn uống buffet trị giá 950.000 đ ở Bước 7 để chứng minh hệ thống tự động hoàn lại tiền cho ví Techcombank (tăng lên **4.500.000 đ**) và hồi phục số dư ngân sách `remain` lại **1.000.000 đ** nguyên vẹn ban đầu.
+
