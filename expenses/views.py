@@ -8,7 +8,7 @@ from django.db.models import Sum
 from django.db.models.functions import TruncDate
 from decimal import Decimal
 
-from .models import Category, Wallet, Transaction, Budget, Notification
+from .models import Category, Wallet, Transaction, Budget, Notification, TransactionType
 from .serializers import (
     CategorySerializer,
     WalletSerializer,
