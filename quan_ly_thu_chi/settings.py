@@ -37,6 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    # Đăng ký rest_framework cho Web API
+    'rest_framework',
+    
+    # Đăng ký các app con
+    'users',
+    'expenses',
 ]
 
 MIDDLEWARE = [
@@ -115,3 +122,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Khai báo model User tùy chỉnh cho hệ thống
+AUTH_USER_MODEL = 'users.User'
+
+# Cấu hình Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+}
+
+
