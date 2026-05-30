@@ -81,50 +81,79 @@ Server sẽ chạy mặc định tại địa chỉ: `http://127.0.0.1:8000/`
 
 ---
 
-## 📋 Danh Sách 42 API Endpoints Hệ Thống (`api/v1/`)
+## 📋 Danh Sách Chi Tiết 43 API Endpoints Hệ Thống (`api/v1/`)
 
-Hệ thống được cấu trúc logic, chia làm 2 App con chính:
+Để bạn dễ dàng kiểm đếm và đối chiếu trực tiếp trên Postman, dưới đây là danh sách chi tiết được phân rã đầy đủ từng phương thức HTTP (không viết gộp). Hệ thống có tổng cộng **43 API Endpoints**:
 
-### 1. Phân hệ Tài khoản & Xác thực (`users`)
+### 1. Phân hệ Tài khoản & Xác thực (`users`) - 11 APIs
 
-| Phương thức | API Endpoint | Chức năng | Phân quyền |
-|---|---|---|---|
-| `POST` | `/api/v1/users/register/` | Đăng ký tài khoản mới (Mã hóa mật khẩu) | Tự do |
-| `POST` | `/api/v1/users/login/` | Đăng nhập hệ thống (Lấy Access & Refresh Token JWT) | Tự do |
-| `GET` | `/api/v1/users/profile/` | Xem thông tin cá nhân của User hiện tại | Đã đăng nhập |
-| `PUT` | `/api/v1/users/profile/` | Cập nhật toàn bộ thông tin cá nhân | Đã đăng nhập |
-| `PATCH` | `/api/v1/users/profile/` | Sửa đổi một phần thông tin cá nhân | Đã đăng nhập |
-| `GET` | `/api/v1/users/admin/` | Admin: Danh sách tất cả tài khoản trong hệ thống | Chỉ Admin |
-| `POST` | `/api/v1/users/admin/` | Admin: Tạo tài khoản mới trực tiếp | Chỉ Admin |
-| `GET` | `/api/v1/users/admin/{id}/` | Admin: Xem thông tin chi tiết tài khoản bất kỳ | Chỉ Admin |
-| `PUT` | `/api/v1/users/admin/{id}/` | Admin: Cập nhật thông tin tài khoản | Chỉ Admin |
-| `DELETE` | `/api/v1/users/admin/{id}/` | Admin: Xóa vĩnh viễn tài khoản khỏi hệ thống | Chỉ Admin |
+| STT | Phương thức | API Endpoint | Chức năng chi tiết | Phân quyền |
+|:---:|:---:|---|---|---|
+| **1** | `POST` | `/api/v1/users/register/` | Đăng ký tài khoản mới (Mã hóa mật khẩu) | Tự do |
+| **2** | `POST` | `/api/v1/users/login/` | Đăng nhập hệ thống (Lấy Access & Refresh Token) | Tự do |
+| **3** | `GET` | `/api/v1/users/profile/` | Xem thông tin cá nhân của User đang đăng nhập | Đã đăng nhập |
+| **4** | `PUT` | `/api/v1/users/profile/` | Cập nhật toàn bộ thông tin cá nhân | Đã đăng nhập |
+| **5** | `PATCH` | `/api/v1/users/profile/` | Sửa đổi một phần thông tin cá nhân | Đã đăng nhập |
+| **6** | `GET` | `/api/v1/users/admin/` | Admin: Danh sách tất cả tài khoản trong hệ thống | Chỉ Admin |
+| **7** | `POST` | `/api/v1/users/admin/` | Admin: Tạo tài khoản mới trực tiếp | Chỉ Admin |
+| **8** | `GET` | `/api/v1/users/admin/{id}/` | Admin: Xem thông tin chi tiết tài khoản bất kỳ | Chỉ Admin |
+| **9** | `PUT` | `/api/v1/users/admin/{id}/` | Admin: Cập nhật toàn bộ thông tin tài khoản | Chỉ Admin |
+| **10** | `PATCH` | `/api/v1/users/admin/{id}/` | Admin: Sửa đổi một phần thông tin tài khoản | Chỉ Admin |
+| **11** | `DELETE` | `/api/v1/users/admin/{id}/` | Admin: Xóa vĩnh viễn tài khoản khỏi hệ thống | Chỉ Admin |
 
-### 2. Phân hệ Quản lý Giao dịch & Cảnh báo tài chính (`expenses`)
+### 2. Phân hệ Quản lý Giao dịch & Cảnh báo tài chính (`expenses`) - 32 APIs
 
-| Phương thức | API Endpoint | Chức năng | Phân quyền |
-|---|---|---|---|
-| `GET` | `/api/v1/categories/` | Lấy danh sách danh mục (Tự lồng cây con đệ quy) | Đã đăng nhập |
-| `POST` | `/api/v1/categories/` | Tạo danh mục mới | Đã đăng nhập |
-| `PUT/PATCH`| `/api/v1/categories/{id}/` | Chỉnh sửa danh mục hệ thống | Chỉ Admin |
-| `DELETE` | `/api/v1/categories/{id}/` | Xóa danh mục hệ thống | Chỉ Admin |
-| `GET` | `/api/v1/wallets/` | Xem danh sách các Ví cá nhân | Đã đăng nhập |
-| `POST` | `/api/v1/wallets/` | Tạo Ví tiền mới | Đã đăng nhập |
-| `PUT/PATCH`| `/api/v1/wallets/{id}/` | Cập nhật thông tin Ví (Tên, Loại, Số dư) | Đã đăng nhập |
-| `DELETE` | `/api/v1/wallets/{id}/` | Xóa Ví tiền cá nhân | Đã đăng nhập |
-| `GET` | `/api/v1/transactions/` | Xem danh sách lịch sử giao dịch Thu/Chi | Đã đăng nhập |
-| `POST` | `/api/v1/transactions/` | Tạo giao dịch (**Ví tự động thay đổi, kiểm tra và trừ ngân sách**) | Đã đăng nhập |
-| `PUT/PATCH`| `/api/v1/transactions/{id}/` | Sửa giao dịch (**Ví và Ngân sách tự bù trừ chênh lệch số dư**) | Đã đăng nhập |
-| `DELETE` | `/api/v1/transactions/{id}/` | Xóa giao dịch (**Ví và Ngân sách tự động hoàn trả số dư**) | Đã đăng nhập |
-| `POST` | `/api/v1/transactions/transfer/` | **Chuyển khoản nội bộ giữa 2 Ví của cùng một người dùng** | Đã đăng nhập |
-| `GET` | `/api/v1/transactions/reports/summary/`| **Báo cáo tổng quan: Tổng Thu, Tổng Chi, Số dư ròng tháng** | Đã đăng nhập |
-| `GET` | `/api/v1/transactions/reports/categories/`| **Báo cáo tỷ lệ % chi tiêu theo danh mục (Biểu đồ tròn)** | Đã đăng nhập |
-| `GET` | `/api/v1/transactions/reports/daily/` | **Báo cáo dòng tiền biến động theo ngày (Biểu đồ cột)** | Đã đăng nhập |
-| `GET/POST` | `/api/v1/budgets/` | Thiết lập ngân sách (Tự động gán remain = amount) | Đã đăng nhập |
-| `PUT/DELETE`| `/api/v1/budgets/{id}/` | Cập nhật / Xóa ngân sách | Đã đăng nhập |
-| `GET` | `/api/v1/notifications/` | Xem danh sách các cảnh báo an toàn ngân sách | Đã đăng nhập |
-| `POST` | `/api/v1/notifications/{id}/mark_read/`| Đánh dấu thông báo cụ thể là đã đọc | Đã đăng nhập |
-| `POST` | `/api/v1/notifications/mark_all_read/`| Đánh dấu tất cả thông báo là đã đọc | Đã đăng nhập |
+#### 2.1. Phân hệ Danh mục chi tiêu (Category) - 6 APIs
+| STT | Phương thức | API Endpoint | Chức năng chi tiết | Phân quyền |
+|:---:|:---:|---|---|---|
+| **12** | `GET` | `/api/v1/categories/` | Lấy danh sách danh mục (Tự lồng cây con đệ quy) | Đã đăng nhập |
+| **13** | `POST` | `/api/v1/categories/` | Tạo danh mục chi tiêu mới | Đã đăng nhập |
+| **14** | `GET` | `/api/v1/categories/{id}/` | Xem thông tin chi tiết của danh mục | Đã đăng nhập |
+| **15** | `PUT` | `/api/v1/categories/{id}/` | Sửa toàn bộ thông tin danh mục | Chỉ Admin |
+| **16** | `PATCH` | `/api/v1/categories/{id}/` | Sửa một phần thông tin danh mục | Chỉ Admin |
+| **17** | `DELETE` | `/api/v1/categories/{id}/` | Xóa danh mục khỏi hệ thống | Chỉ Admin |
+
+#### 2.2. Phân hệ Ví cá nhân (Wallet) - 6 APIs
+| STT | Phương thức | API Endpoint | Chức năng chi tiết | Phân quyền |
+|:---:|:---:|---|---|---|
+| **18** | `GET` | `/api/v1/wallets/` | Xem danh sách các Ví tiền cá nhân | Đã đăng nhập |
+| **19** | `POST` | `/api/v1/wallets/` | Tạo Ví tiền mới | Đã đăng nhập |
+| **20** | `GET` | `/api/v1/wallets/{id}/` | Xem chi tiết số dư và thông tin Ví | Đã đăng nhập |
+| **21** | `PUT` | `/api/v1/wallets/{id}/` | Cập nhật thông tin Ví | Đã đăng nhập |
+| **22** | `PATCH` | `/api/v1/wallets/{id}/` | Sửa đổi một phần thông tin Ví | Đã đăng nhập |
+| **23** | `DELETE` | `/api/v1/wallets/{id}/` | Xóa Ví tiền cá nhân | Đã đăng nhập |
+
+#### 2.3. Phân hệ Giao dịch Thu/Chi (Transaction) - 10 APIs
+| STT | Phương thức | API Endpoint | Chức năng chi tiết | Phân quyền |
+|:---:|:---:|---|---|---|
+| **24** | `GET` | `/api/v1/transactions/` | Xem danh sách lịch sử giao dịch Thu/Chi | Đã đăng nhập |
+| **25** | `POST` | `/api/v1/transactions/` | Tạo giao dịch (**Auto trừ ví, trừ ngân sách, cảnh báo**) | Đã đăng nhập |
+| **26** | `GET` | `/api/v1/transactions/{id}/` | Xem chi tiết bản ghi giao dịch | Đã đăng nhập |
+| **27** | `PUT` | `/api/v1/transactions/{id}/` | Sửa giao dịch (**Auto bù trừ chênh lệch số dư**) | Đã đăng nhập |
+| **28** | `PATCH` | `/api/v1/transactions/{id}/` | Sửa một phần giao dịch (**Auto bù trừ chênh lệch**) | Đã đăng nhập |
+| **29** | `DELETE` | `/api/v1/transactions/{id}/` | Xóa giao dịch (**Auto hoàn trả ví & ngân sách**) | Đã đăng nhập |
+| **30** | `POST` | `/api/v1/transactions/transfer/` | **Chuyển khoản nội bộ giữa 2 Ví** | Đã đăng nhập |
+| **31** | `GET` | `/api/v1/transactions/reports/summary/` | **Báo cáo: Tổng Thu, Tổng Chi, Số dư ròng tháng** | Đã đăng nhập |
+| **32** | `GET` | `/api/v1/transactions/reports/categories/` | **Báo cáo: % chi tiêu theo danh mục (Biểu đồ tròn)** | Đã đăng nhập |
+| **33** | `GET` | `/api/v1/transactions/reports/daily/` | **Báo cáo: Biến động dòng tiền theo ngày (Biểu đồ cột)** | Đã đăng nhập |
+
+#### 2.4. Phân hệ Hạn mức Ngân sách (Budget) - 6 APIs
+| STT | Phương thức | API Endpoint | Chức năng chi tiết | Phân quyền |
+|:---:|:---:|---|---|---|
+| **34** | `GET` | `/api/v1/budgets/` | Xem danh sách ngân sách đang hoạt động | Đã đăng nhập |
+| **35** | `POST` | `/api/v1/budgets/` | Thiết lập ngân sách mới (Tự gán `remain = amount`) | Đã đăng nhập |
+| **36** | `GET` | `/api/v1/budgets/{id}/` | Xem chi tiết cấu hình ngân sách | Đã đăng nhập |
+| **37** | `PUT` | `/api/v1/budgets/{id}/` | Cập nhật ngân sách | Đã đăng nhập |
+| **38** | `PATCH` | `/api/v1/budgets/{id}/` | Sửa đổi một phần thông tin ngân sách | Đã đăng nhập |
+| **39** | `DELETE` | `/api/v1/budgets/{id}/` | Xóa ngân sách | Đã đăng nhập |
+
+#### 2.5. Phân hệ Cảnh báo tài chính (Notification) - 4 APIs
+| STT | Phương thức | API Endpoint | Chức năng chi tiết | Phân quyền |
+|:---:|:---:|---|---|---|
+| **40** | `GET` | `/api/v1/notifications/` | Xem danh sách các cảnh báo an toàn ngân sách | Đã đăng nhập |
+| **41** | `GET` | `/api/v1/notifications/{id}/` | Xem chi tiết một cảnh báo | Đã đăng nhập |
+| **42** | `POST` | `/api/v1/notifications/{id}/mark_read/` | Đánh dấu thông báo cụ thể là đã đọc | Đã đăng nhập |
+| **43** | `POST` | `/api/v1/notifications/mark_all_read/` | Đánh dấu tất cả thông báo của user là đã đọc | Đã đăng nhập |
 
 ---
 
