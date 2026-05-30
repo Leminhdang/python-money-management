@@ -59,16 +59,6 @@ class UserProfileAPIView(APIView):
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def patch(self, request, *args, **kwargs):
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                "message": "Cập nhật một phần thông tin cá nhân thành công!",
-                "user": serializer.data
-            }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class UserAdminViewSet(viewsets.ModelViewSet):
     """
@@ -78,3 +68,4 @@ class UserAdminViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by('-createdAt')
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']

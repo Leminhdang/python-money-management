@@ -25,6 +25,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_permissions(self):
         # Thiết lập quyền: Chỉ Admin mới có thể xóa hoặc sửa đổi danh mục hệ thống
@@ -51,6 +52,7 @@ class WalletViewSet(viewsets.ModelViewSet):
     queryset = Wallet.objects.all().order_by('name')
     serializer_class = WalletSerializer
     permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
         return Wallet.objects.filter(userId=self.request.user)
@@ -67,6 +69,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     queryset = Transaction.objects.all().order_by('-createdAt')
     serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
         # Chỉ lấy các giao dịch thuộc các ví của người dùng hiện tại
@@ -400,6 +403,7 @@ class BudgetViewSet(viewsets.ModelViewSet):
     queryset = Budget.objects.all().order_by('-fromDate')
     serializer_class = BudgetSerializer
     permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
         # Trả về ngân sách có danh mục thuộc sở hữu của người dùng hiện tại
@@ -418,6 +422,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all().order_by('-time')
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
         return Notification.objects.filter(userId=self.request.user)
