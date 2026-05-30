@@ -134,4 +134,15 @@ REST_FRAMEWORK = {
     ),
 }
 
+# Cấu hình Simple JWT - Thiết lập thời gian sống của token hoạt động 24h
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+    'UPDATE_LAST_LOGIN': True,
+}
+
+
 
