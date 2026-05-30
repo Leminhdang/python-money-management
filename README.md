@@ -14,6 +14,33 @@
 
 ---
 
+## 🌟 Tính Năng Đặc Biệt Nhất: Giao Dịch Nguyên Tử & Tự Động Hóa Cảnh Báo An Toàn Ngân Sách
+
+Chức năng tâm đắc nhất và có độ phức tạp kỹ thuật cao nhất của hệ thống chính là **"Xử lý logic giao dịch nguyên tử ngầm và Tự động hóa cảnh báo an toàn ngân sách"**. Đây là điểm nhấn cốt lõi thể hiện rõ tư duy lập trình hướng đối tượng (OOP) nâng cao và khả năng làm chủ luồng dữ liệu chặt chẽ của Python/Django.
+
+### 1. Cơ chế hoạt động ngầm (Under the hood):
+Khi một request thay đổi giao dịch chi tiêu được gửi lên, hệ thống không chỉ ghi nhận bản ghi mà còn tự động kích hoạt một chuỗi các nghiệp vụ liên hoàn:
+
+```mermaid
+graph TD
+    A[Request Giao dịch Chi tiêu] --> B[Giao dịch Nguyên tử atomic]
+    B --> C[Tự động trừ số dư của Ví tương ứng]
+    C --> D[Tự động trừ số tiền còn lại remain của Ngân sách đang hoạt động]
+    D --> E{Kiểm tra Ngân sách còn lại remain?}
+    E -- Dưới 10% hoặc Âm --> F[Tự sinh bản ghi Notification Cảnh báo thời gian thực]
+    E -- Trên 10% --> G[Hoàn tất giao dịch an toàn]
+    F --> H[Lưu cơ sở dữ liệu & Phản hồi JSON]
+    G --> H
+```
+
+### 2. Sự tinh tế trong Thiết kế OOP & Framework Engineering:
+- **Giao dịch Nguyên tử (`@db_transaction.atomic`):** Đảm bảo tính toàn vẹn dữ liệu tuyệt đối (Data Integrity). Nếu bất kỳ bước nào trong chuỗi tính toán trên bị lỗi (ví dụ: ví bị thiếu tiền hoặc lỗi mạng), toàn bộ quá trình sẽ bị đảo ngược (Rollback) hoàn toàn, loại bỏ 100% rủi ro sai lệch số dư.
+- **Tính đóng gói chặt chẽ:** Toàn bộ logic cập nhật số dư, bù trừ chênh lệch ngân sách được đóng gói trực tiếp bên trong các phương thức kế thừa của bộ kiểm soát View (`perform_create`, `perform_update`, `perform_destroy` trong `TransactionViewSet`), che giấu hoàn toàn sự phức tạp khỏi phía Client.
+- **Khả năng tự hồi phục thông minh:** Khi sửa hoặc xóa giao dịch, hệ thống tự động hoàn lại tiền vào ví nguồn và khôi phục hạn mức ngân sách y hệt trạng thái ban đầu một cách hoàn toàn tự động.
+
+---
+
+
 ## 🚀 Hướng Dẫn Cài Đặt và Khởi Chạy Dự Án
 
 ### Bước 1: Kích hoạt môi trường ảo (Virtual Environment)
