@@ -11,7 +11,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('id', 'name', 'userId', 'parentId', 'type', 'subcategories')
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'userId')
 
     def get_subcategories(self, obj):
         # Lấy tất cả các danh mục con của danh mục hiện tại
@@ -27,7 +27,7 @@ class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         model = Wallet
         fields = ('id', 'userId', 'name', 'type', 'amount')
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'userId')
 
     def validate_amount(self, value):
         # Đảm bảo số tiền khởi tạo không âm
@@ -77,7 +77,7 @@ class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
         fields = ('id', 'name', 'categoryId', 'amount', 'remain', 'loop', 'fromDate', 'toDate', 'note', 'wallets')
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'remain')
 
     def validate_amount(self, value):
         # 5. Hàm validate hạn mức ngân sách phải lớn hơn 0
@@ -109,4 +109,4 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ('id', 'userId', 'content', 'link', 'time', 'isRead')
-        read_only_fields = ('id', 'time')
+        read_only_fields = ('id', 'userId', 'time')
