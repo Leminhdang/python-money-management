@@ -17,38 +17,35 @@ from .serializers import (
     NotificationSerializer
 )
 
+
 class CategoryViewSet(viewsets.ModelViewSet):
     """
     ViewSet quản lý Danh mục thu/chi.
-    - Người dùng thông thường chỉ thao tác trên danh mục của riêng họ.
-    - Admin (IsAdminUser) có thể quản lý tất cả các danh mục trên hệ thống.
+    User thường chỉ xài danh mục của mình, Admin thì quản lý hết.
     """
     queryset = Category.objects.all().order_by('name')
     serializer_class = CategorySerializer
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_permissions(self):
-        # Thiết lập quyền: Chỉ Admin mới có thể xóa hoặc sửa đổi danh mục hệ thống
+        # Admin mới đc xóa/sửa danh mục hệ thống
         if self.action in ['destroy', 'update', 'partial_update']:
             return [IsAdminUser()]
         return [IsAuthenticated()]
 
     def get_queryset(self):
-        # Trả về danh mục thuộc về người dùng hiện tại
         if self.request.user.is_staff or self.request.user.is_superuser:
             return Category.objects.all()
         return Category.objects.filter(userId=self.request.user)
 
     def perform_create(self, serializer):
-        # Tự động gán người dùng hiện tại làm chủ sở hữu danh mục
+        # Gán user hiện tại làm chủ danh mục
         serializer.save(userId=self.request.user)
 
 
 class WalletViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet quản lý các Ví tiền (tài khoản thanh toán).
-    Tất cả các API yêu cầu xác thực người dùng và chỉ trả về ví của chính họ.
-    """
+    """ViewSet quản lý Ví tiền. Mỗi user chỉ thấy ví của mình."""
+
     queryset = Wallet.objects.all().order_by('name')
     serializer_class = WalletSerializer
     permission_classes = [IsAuthenticated]
@@ -64,7 +61,7 @@ class WalletViewSet(viewsets.ModelViewSet):
 class TransactionViewSet(viewsets.ModelViewSet):
     """
     ViewSet quản lý Giao dịch Thu/Chi.
-    Chứa toàn bộ logic nghiệp vụ tự động hóa số dư Ví, Hạn mức Ngân sách và Thông báo.
+    Xử lý tự động: cập nhật số dư Ví, trừ hạn mức Ngân sách, bắn Thông báo.
     """
     queryset = Transaction.objects.all().order_by('-createdAt')
     serializer_class = TransactionSerializer
@@ -72,21 +69,19 @@ class TransactionViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        # Chỉ lấy các giao dịch thuộc các ví của người dùng hiện tại
         return Transaction.objects.filter(walletId__userId=self.request.user)
 
     @db_transaction.atomic
     def perform_create(self, serializer):
         wallet = serializer.validated_data['walletId']
-        
-        # Kiểm tra tính chính chủ của ví
+
+        # Check ví có phải của user ko
         if wallet.userId != self.request.user:
-            raise serializers.ValidationError({"walletId": "Ví giao dịch không thuộc quyền sở hữu của bạn."})
-        
-        # Lưu giao dịch mới
+            raise serializers.ValidationError({"walletId": "Ví này ko thuộc của bạn."})
+
         transaction = serializer.save()
-        
-        # TỰ ĐỘNG HÓA LOGIC 1: Cập nhật số dư Ví (Cộng tiền nếu là Thu, Trừ tiền nếu là Chi)
+
+        # Cập nhật số dư ví: chi thì trừ, thu thì cộng
         amount = transaction.amount
         if transaction.type == 'expense':
             wallet.amount -= amount
@@ -94,10 +89,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
             wallet.amount += amount
         wallet.save()
 
-        # TỰ ĐỘNG HÓA LOGIC 2: Trừ hạn mức ngân sách và bắn cảnh báo khi có chi tiêu (expense)
+        # Nếu là chi tiêu thì trừ hạn mức ngân sách + bắn cảnh báo
         if transaction.type == 'expense':
             today = timezone.localdate()
-            # Tìm kiếm các ngân sách đang chạy thuộc danh mục chi tiêu này và áp dụng cho ví này
             active_budgets = Budget.objects.filter(
                 categoryId=transaction.categoryId,
                 wallets=wallet,
@@ -107,15 +101,15 @@ class TransactionViewSet(viewsets.ModelViewSet):
             for budget in active_budgets:
                 budget.remain -= amount
                 budget.save()
-                
-                # Tự động sinh thông báo cảnh báo nếu ngân sách cạn kiệt hoặc âm
+
+                # Bắn thông báo nếu ngân sách hết hoặc âm
                 if budget.remain <= 0:
                     Notification.objects.create(
                         userId=self.request.user,
                         content=f"Cảnh báo: Ngân sách '{budget.name}' dành cho ví '{wallet.name}' đã cạn kiệt hoặc bị âm! Số tiền còn lại: {budget.remain} đ.",
                         link=f"/api/v1/expenses/budgets/{budget.id}/"
                     )
-                # Cảnh báo nếu ngân sách còn lại dưới 10%
+                # Cảnh báo khi còn dưới 10%
                 elif budget.remain < (budget.amount * Decimal('0.10')):
                     Notification.objects.create(
                         userId=self.request.user,
@@ -126,16 +120,16 @@ class TransactionViewSet(viewsets.ModelViewSet):
     @db_transaction.atomic
     def perform_update(self, serializer):
         old_instance = self.get_object()
-        
-        # Hoàn trả lại số dư cũ cho ví cũ trước khi cập nhật
+
+        # Bước 1: Hoàn tiền lại cho ví cũ
         old_wallet = old_instance.walletId
         if old_instance.type == 'expense':
             old_wallet.amount += old_instance.amount
         else:
             old_wallet.amount -= old_instance.amount
         old_wallet.save()
-        
-        # Hoàn trả lại hạn mức ngân sách cũ (nếu có)
+
+        # Hoàn hạn mức ngân sách cũ nếu là chi tiêu
         if old_instance.type == 'expense':
             today = timezone.localdate()
             old_budgets = Budget.objects.filter(
@@ -148,15 +142,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 budget.remain += old_instance.amount
                 budget.save()
 
-        # Lưu thông tin giao dịch mới cập nhật
+        # Bước 2: Lưu giao dịch mới
         new_transaction = serializer.save()
         new_wallet = new_transaction.walletId
-        
-        # Kiểm tra tính hợp lệ của ví mới
-        if new_wallet.userId != self.request.user:
-            raise serializers.ValidationError({"walletId": "Ví giao dịch mới không thuộc sở hữu của bạn."})
 
-        # Áp dụng số dư mới cho ví mới
+        if new_wallet.userId != self.request.user:
+            raise serializers.ValidationError({"walletId": "Ví mới ko thuộc của bạn."})
+
+        # Áp dụng số dư mới
         new_amount = new_transaction.amount
         if new_transaction.type == 'expense':
             new_wallet.amount -= new_amount
@@ -164,7 +157,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             new_wallet.amount += new_amount
         new_wallet.save()
 
-        # Áp dụng thay đổi vào ngân sách mới (nếu có)
+        # Trừ hạn mức ngân sách mới (nếu có)
         if new_transaction.type == 'expense':
             today = timezone.localdate()
             new_budgets = Budget.objects.filter(
@@ -176,8 +169,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             for budget in new_budgets:
                 budget.remain -= new_amount
                 budget.save()
-                
-                # Bắn cảnh báo nếu ngân sách cạn kiệt
+
                 if budget.remain <= 0:
                     Notification.objects.create(
                         userId=self.request.user,
@@ -194,15 +186,15 @@ class TransactionViewSet(viewsets.ModelViewSet):
     @db_transaction.atomic
     def perform_destroy(self, instance):
         wallet = instance.walletId
-        
-        # Hoàn trả lại tiền vào ví khi xóa giao dịch
+
+        # Hoàn tiền lại ví khi xóa giao dịch
         if instance.type == 'expense':
             wallet.amount += instance.amount
         else:
             wallet.amount -= instance.amount
         wallet.save()
 
-        # Hoàn trả lại hạn mức cho ngân sách liên quan
+        # Hoàn hạn mức ngân sách
         if instance.type == 'expense':
             today = timezone.localdate()
             budgets = Budget.objects.filter(
@@ -214,27 +206,29 @@ class TransactionViewSet(viewsets.ModelViewSet):
             for budget in budgets:
                 budget.remain += instance.amount
                 budget.save()
-                
+
         instance.delete()
 
-    # --- 3. CÁC API THỐNG KÊ VÀ BÁO CÁO ---
+    # --- API THỐNG KÊ & BÁO CÁO ---
 
     @action(detail=False, methods=['get'], url_path='reports/summary')
     def reports_summary(self, request):
         """
-        API tổng hợp: Tổng thu, tổng chi, số dư ròng trong tháng hiện tại.
+        Tổng thu, tổng chi, số dư ròng trong tháng hiện tại.
         GET /api/v1/expenses/transactions/reports/summary/
         """
         today = timezone.localdate()
         start_of_month = today.replace(day=1)
-        
-        # Lọc giao dịch của user trong tháng hiện tại
-        txs = self.get_queryset().filter(createdAt__date__gte=start_of_month, createdAt__date__lte=today)
-        
+
+        txs = self.get_queryset().filter(
+            createdAt__date__gte=start_of_month,
+            createdAt__date__lte=today
+        )
+
         total_income = txs.filter(type='income').aggregate(total=Sum('amount'))['total'] or Decimal('0.0')
         total_expense = txs.filter(type='expense').aggregate(total=Sum('amount'))['total'] or Decimal('0.0')
         net_balance = total_income - total_expense
-        
+
         return Response({
             "month": today.strftime('%m/%Y'),
             "totalIncome": total_income,
@@ -245,27 +239,28 @@ class TransactionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='reports/categories')
     def reports_categories(self, request):
         """
-        API tỷ lệ % chi tiêu theo từng danh mục trong tháng hiện tại.
+        Tỷ lệ % chi tiêu theo từng danh mục trong tháng.
         GET /api/v1/expenses/transactions/reports/categories/
         """
         today = timezone.localdate()
         start_of_month = today.replace(day=1)
-        
-        # Lọc các giao dịch CHI TIÊU của user trong tháng hiện tại
+
         expenses = self.get_queryset().filter(
             type='expense',
             createdAt__date__gte=start_of_month,
             createdAt__date__lte=today
         )
-        
+
         total_expense = expenses.aggregate(total=Sum('amount'))['total'] or Decimal('0.0')
-        
+
         if total_expense == 0:
             return Response({"message": "Không có giao dịch chi tiêu nào trong tháng.", "data": []}, status=status.HTTP_200_OK)
-            
-        # Gom nhóm theo danh mục và tính tổng số tiền
-        category_stats = expenses.values('categoryId__name').annotate(total_amount=Sum('amount')).order_by('-total_amount')
-        
+
+        # Gom nhóm theo danh mục, tính tổng tiền
+        category_stats = expenses.values('categoryId__name').annotate(
+            total_amount=Sum('amount')
+        ).order_by('-total_amount')
+
         report_data = []
         for stat in category_stats:
             cat_name = stat['categoryId__name'] or "Không xác định"
@@ -276,7 +271,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 "amount": amount,
                 "percentage": percentage
             })
-            
+
         return Response({
             "month": today.strftime('%m/%Y'),
             "totalExpense": total_expense,
@@ -286,80 +281,95 @@ class TransactionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='reports/daily')
     def reports_daily(self, request):
         """
-        API dòng tiền biến động Thu vs Chi theo từng ngày trong tháng hiện tại.
+        Biến động thu/chi theo từng ngày trong tháng.
         GET /api/v1/expenses/transactions/reports/daily/
         """
         today = timezone.localdate()
         start_of_month = today.replace(day=1)
-        
-        txs = self.get_queryset().filter(createdAt__date__gte=start_of_month, createdAt__date__lte=today)
-        
-        # Gom nhóm theo ngày và tính tổng thu/chi
-        daily_stats = txs.annotate(date=TruncDate('createdAt')).values('date', 'type').annotate(total_amount=Sum('amount')).order_by('date')
-        
-        # Tổ chức lại cấu trúc dữ liệu theo ngày
+
+        txs = self.get_queryset().filter(
+            createdAt__date__gte=start_of_month,
+            createdAt__date__lte=today
+        )
+
+        daily_stats = txs.annotate(
+            date=TruncDate('createdAt')
+        ).values('date', 'type').annotate(
+            total_amount=Sum('amount')
+        ).order_by('date')
+
+        # Gom lại theo ngày cho gọn
         data_by_date = {}
         for stat in daily_stats:
             date_str = stat['date'].strftime('%Y-%m-%d')
             if date_str not in data_by_date:
                 data_by_date[date_str] = {"date": date_str, "income": Decimal('0.0'), "expense": Decimal('0.0')}
-            
+
             if stat['type'] == 'income':
                 data_by_date[date_str]['income'] = stat['total_amount']
             else:
                 data_by_date[date_str]['expense'] = stat['total_amount']
-                
+
         return Response(list(data_by_date.values()), status=status.HTTP_200_OK)
 
-    # --- 4. API CHUYỂN KHOẢN (TRANSFER) ---
+    # --- API CHUYỂN KHOẢN ---
 
     @action(detail=False, methods=['post'], url_path='transfer')
     @db_transaction.atomic
     def transfer(self, request):
         """
-        API Chuyển khoản nội bộ giữa các Ví tài chính của người dùng.
+        Chuyển khoản nội bộ giữa 2 ví của cùng 1 user.
         POST /api/v1/expenses/transactions/transfer/
-        Payload: {"fromWalletId": "UUID", "toWalletId": "UUID", "amount": 50000.0, "note": "Chuyển tiền tiết kiệm"}
+        Body: {"fromWalletId": "UUID", "toWalletId": "UUID", "amount": 50000, "note": "..."}
         """
         from_wallet_id = request.data.get('fromWalletId')
         to_wallet_id = request.data.get('toWalletId')
         amount_raw = request.data.get('amount')
         note = request.data.get('note', '')
 
-        # Kiểm tra tham số đầu vào
+        # Validate đầu vào
         if not from_wallet_id or not to_wallet_id or not amount_raw:
-            return Response({"error": "Vui lòng cung cấp đầy đủ thông tin: fromWalletId, toWalletId, amount"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Vui lòng cung cấp đầy đủ: fromWalletId, toWalletId, amount"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         try:
             amount = Decimal(str(amount_raw))
         except ValueError:
-            return Response({"error": "Số tiền chuyển khoản không hợp lệ."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Số tiền ko hợp lệ."}, status=status.HTTP_400_BAD_REQUEST)
 
         if amount <= 0:
-            return Response({"error": "Số tiền chuyển khoản phải lớn hơn 0."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Số tiền phải lớn hơn 0."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Lấy thông tin Ví từ cơ sở dữ liệu
+        # Lấy 2 ví từ DB
         try:
             from_wallet = Wallet.objects.get(id=from_wallet_id, userId=request.user)
             to_wallet = Wallet.objects.get(id=to_wallet_id, userId=request.user)
         except Wallet.DoesNotExist:
-            return Response({"error": "Một hoặc cả hai Ví không tồn tại hoặc không thuộc quyền sở hữu của bạn."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Ví ko tồn tại hoặc ko thuộc của bạn."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         if from_wallet.id == to_wallet.id:
-            return Response({"error": "Không thể chuyển khoản đến chính ví hiện tại."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Ko thể chuyển khoản cho chính ví đó."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Kiểm tra số dư tài khoản ví nguồn
+        # Check số dư
         if from_wallet.amount < amount:
-            return Response({"error": f"Số dư ví nguồn không đủ để thực hiện giao dịch này. Số dư hiện tại: {from_wallet.amount} đ."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"Số dư ví nguồn ko đủ. Hiện tại: {from_wallet.amount} đ."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # Thực hiện trừ tiền ở ví gửi và cộng tiền ở ví nhận
+        # Trừ ví gửi, cộng ví nhận
         from_wallet.amount -= amount
         from_wallet.save()
-        
+
         to_wallet.amount += amount
         to_wallet.save()
 
-        # Tạo danh mục mặc định dành cho chuyển khoản nếu chưa có
+        # Tạo danh mục chuyển khoản nếu chưa có
         category_transfer, _ = Category.objects.get_or_create(
             name="Chuyển khoản nội bộ",
             userId=request.user,
@@ -367,7 +377,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             defaults={"parentId": None}
         )
 
-        # Tạo lịch sử giao dịch chi tiêu (Ghi nhận ở ví gửi)
+        # Ghi lịch sử: 1 giao dịch chi ở ví gửi, 1 giao dịch thu ở ví nhận
         tx_from = Transaction.objects.create(
             walletId=from_wallet,
             categoryId=category_transfer,
@@ -376,7 +386,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
             note=f"Chuyển khoản đến Ví '{to_wallet.name}'. Ghi chú: {note}"
         )
 
-        # Tạo lịch sử giao dịch thu nhập (Ghi nhận ở ví nhận)
         tx_to = Transaction.objects.create(
             walletId=to_wallet,
             categoryId=category_transfer,
@@ -397,28 +406,26 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
 
 class BudgetViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet quản lý Hạn mức Ngân sách.
-    """
+    """ViewSet quản lý Hạn mức Ngân sách."""
+
     queryset = Budget.objects.all().order_by('-fromDate')
     serializer_class = BudgetSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        # Trả về ngân sách có danh mục thuộc sở hữu của người dùng hiện tại
+        # Lấy ngân sách mà danh mục thuộc user hiện tại
         return Budget.objects.filter(categoryId__userId=self.request.user)
 
     def perform_create(self, serializer):
-        # Tự động khởi tạo số dư còn lại (remain) bằng đúng số tiền thiết lập ban đầu (amount)
+        # Khởi tạo remain = amount ban đầu
         amount = serializer.validated_data.get('amount', Decimal('0.0'))
         serializer.save(remain=amount)
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet quản lý Thông báo cảnh báo của hệ thống.
-    """
+    """ViewSet quản lý Thông báo cảnh báo."""
+
     queryset = Notification.objects.all().order_by('-time')
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
@@ -429,10 +436,7 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='mark_read')
     def mark_read(self, request, pk=None):
-        """
-        API đánh dấu một thông báo đã đọc.
-        POST /api/v1/expenses/notifications/{id}/mark_read/
-        """
+        """Đánh dấu 1 thông báo đã đọc."""
         notification = self.get_object()
         notification.isRead = True
         notification.save()
@@ -440,9 +444,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='mark_all_read')
     def mark_all_read(self, request):
-        """
-        API đánh dấu tất cả thông báo của người dùng đã đọc.
-        POST /api/v1/expenses/notifications/mark_all_read/
-        """
+        """Đánh dấu tất cả thông báo đã đọc."""
         self.get_queryset().update(isRead=True)
         return Response({"message": "Đã đánh dấu tất cả thông báo là đã đọc."}, status=status.HTTP_200_OK)

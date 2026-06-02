@@ -5,11 +5,10 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
 
+
 class RegisterAPIView(APIView):
-    """
-    API đăng ký tài khoản người dùng mới.
-    Cho phép mọi đối tượng truy cập (AllowAny).
-    """
+    """API đăng ký tài khoản mới. Cho phép truy cập tự do (AllowAny)."""
+
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -24,11 +23,8 @@ class RegisterAPIView(APIView):
 
 
 class LoginAPIView(APIView):
-    """
-    API đăng nhập hệ thống.
-    Xác thực tài khoản và trả về JWT Token cùng thông tin User.
-    Cho phép mọi đối tượng truy cập (AllowAny).
-    """
+    """API đăng nhập, trả về JWT Token + thông tin user."""
+
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
@@ -39,10 +35,8 @@ class LoginAPIView(APIView):
 
 
 class UserProfileAPIView(APIView):
-    """
-    API xem và cập nhật thông tin cá nhân của người dùng đang đăng nhập.
-    Yêu cầu quyền truy cập (IsAuthenticated).
-    """
+    """API xem và cập nhật thông tin cá nhân của user đang đăng nhập."""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
@@ -61,10 +55,8 @@ class UserProfileAPIView(APIView):
 
 
 class UserAdminViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet quản lý toàn bộ người dùng hệ thống.
-    Quyền truy cập: Chỉ có Quản trị viên (IsAdminUser) mới được xem và CRUD.
-    """
+    """ViewSet cho Admin quản lý toàn bộ user trong hệ thống."""
+
     queryset = User.objects.all().order_by('-createdAt')
     serializer_class = UserSerializer
     permission_classes = [IsAdminUser]

@@ -3,10 +3,10 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 
+
 class UserSerializer(serializers.ModelSerializer):
-    """
-    Serializer hiển thị và cập nhật thông tin cá nhân của User.
-    """
+    """Serializer hiển thị và cập nhật thông tin cá nhân User."""
+
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'name', 'birthday', 'phoneNumber', 'address', 'createdAt')
@@ -15,8 +15,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     """
-    Serializer đóng gói logic đăng ký tài khoản mới.
-    Mật khẩu được mã hóa an toàn qua phương thức create kế thừa từ OOP Django.
+    Serializer xử lý đăng ký tài khoản mới.
+    Mật khẩu được băm an toàn qua create_user() của AbstractUser.
     """
     password = serializers.CharField(write_only=True, required=True, min_length=6, label="Mật khẩu")
     passwordConfirm = serializers.CharField(write_only=True, required=True, label="Xác nhận mật khẩu")
@@ -26,21 +26,19 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'password', 'passwordConfirm', 'name', 'birthday', 'phoneNumber', 'address')
 
     def validate(self, attrs):
-        # Kiểm tra trùng khớp mật khẩu
+        # Check mật khẩu có trùng nhau ko
         if attrs['password'] != attrs['passwordConfirm']:
-            raise serializers.ValidationError({"passwordConfirm": "Mật khẩu xác nhận không trùng khớp."})
-        
-        # Kiểm tra trùng lặp email
+            raise serializers.ValidationError({"passwordConfirm": "Mật khẩu xác nhận ko trùng khớp."})
+
         if User.objects.filter(email=attrs['email']).exists():
             raise serializers.ValidationError({"email": "Email này đã được sử dụng."})
-            
+
         return attrs
 
     def create(self, validated_data):
-        # Loại bỏ trường xác nhận mật khẩu trước khi tạo
+        # Bỏ passwordConfirm ra trước khi tạo user
         validated_data.pop('passwordConfirm')
-        
-        # Sử dụng create_user của AbstractUser để tự động băm mật khẩu an toàn
+
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -55,13 +53,13 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class LoginSerializer(serializers.Serializer):
     """
-    Serializer xử lý xác thực thông tin người dùng và sinh JWT Token.
-    Hỗ trợ đăng nhập linh hoạt bằng cả Username hoặc Email.
+    Serializer xác thực user và sinh JWT Token.
+    Hỗ trợ đăng nhập bằng cả username hoặc email.
     """
     usernameOrEmail = serializers.CharField(write_only=True, required=True, label="Tài khoản hoặc Email")
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'}, label="Mật khẩu")
-    
-    # Các trường trả về trong JSON khi đăng nhập thành công
+
+    # Các trường trả về khi login thành công
     user = UserSerializer(read_only=True)
     access = serializers.CharField(read_only=True)
     refresh = serializers.CharField(read_only=True)
@@ -69,8 +67,8 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, attrs):
         username_or_email = attrs.get('usernameOrEmail')
         password = attrs.get('password')
-        
-        # Tìm User theo username hoặc email
+
+        # Nếu nhập email thì tìm username tương ứng
         username = username_or_email
         if '@' in username_or_email:
             try:
@@ -79,18 +77,17 @@ class LoginSerializer(serializers.Serializer):
             except User.DoesNotExist:
                 pass
 
-        # Thực hiện xác thực thông qua hệ thống bảo mật của Django
         user = authenticate(username=username, password=password)
-        
+
         if not user:
             raise serializers.ValidationError("Tài khoản hoặc mật khẩu không chính xác.")
-        
+
         if not user.is_active:
             raise serializers.ValidationError("Tài khoản này đã bị khóa.")
 
-        # Sinh token JWT mới
+        # Sinh JWT token
         refresh = RefreshToken.for_user(user)
-        
+
         return {
             'user': user,
             'access': str(refresh.access_token),
