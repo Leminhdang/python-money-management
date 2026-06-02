@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.utils import timezone
 from django.db import transaction as db_transaction
@@ -325,6 +327,13 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     # --- 5. API PHÂN TÍCH TỔNG HỢP (Module tự xây dựng: phan_tich_chi_tieu) ---
 
+    @swagger_auto_schema(
+        operation_summary="Phân tích tổng hợp chi tiêu (Module OOP tự xây dựng)",
+        operation_description="Sử dụng module phan_tich_chi_tieu.py với đa hình OOP: "
+                             "cùng 1 danh sách giao dịch, 3 loại phân tích khác nhau "
+                             "(theo ngày, theo danh mục, theo ví).",
+        tags=['Báo Cáo & Phân Tích (Module OOP)'],
+    )
     @action(detail=False, methods=['get'], url_path='reports/analysis')
     def reports_analysis(self, request):
         """
@@ -369,6 +378,21 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     # --- 6. API XUẤT BÁO CÁO ĐA ĐỊNH DẠNG (Module tự xây dựng: xuat_bao_cao) ---
 
+    @swagger_auto_schema(
+        operation_summary="Xuất báo cáo đa định dạng (Module OOP tự xây dựng)",
+        operation_description="Sử dụng module xuat_bao_cao.py với đa hình OOP: "
+                             "cùng 1 data xuất ra JSON, CSV hoặc Text.",
+        tags=['Báo Cáo & Phân Tích (Module OOP)'],
+        manual_parameters=[
+            openapi.Parameter(
+                'format', openapi.IN_QUERY,
+                description='Định dạng xuất: json (mặc định), csv, text',
+                type=openapi.TYPE_STRING,
+                enum=['json', 'csv', 'text'],
+                default='json',
+            ),
+        ],
+    )
     @action(detail=False, methods=['get'], url_path='reports/export')
     def reports_export(self, request):
         """

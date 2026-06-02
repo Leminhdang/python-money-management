@@ -10,6 +10,7 @@
 - **Framework:** Django 6.0.5
 - **Công cụ API:** Django REST Framework (DRF) 3.17.1
 - **Cơ chế xác thực:** JSON Web Token (JWT) qua `djangorestframework-simplejwt`
+- **Tài liệu API:** Swagger UI qua `drf-yasg` (truy cập tại `/swagger/`)
 - **Cơ sở dữ liệu:** SQLite (Lưu trữ tệp cục bộ phục vụ demo gọn nhẹ)
 
 ---
@@ -81,9 +82,9 @@ Server sẽ chạy mặc định tại địa chỉ: `http://127.0.0.1:8000/`
 
 ---
 
-## 📋 Danh Sách Chi Tiết 37 API Endpoints Hệ Thống (`api/v1/`)
+## 📋 Danh Sách Chi Tiết 39 API Endpoints Hệ Thống (`api/v1/`)
 
-Để bạn dễ dàng kiểm đếm và đối chiếu trực tiếp trên Postman, dưới đây là danh sách chi tiết được phân rã đầy đủ từng phương thức HTTP (chỉ bao gồm GET, POST, PUT, DELETE; đã loại bỏ hoàn toàn PATCH). Hệ thống có tổng cộng **37 API Endpoints**:
+Để bạn dễ dàng kiểm đếm và đối chiếu trực tiếp trên Postman, dưới đây là danh sách chi tiết được phân rã đầy đủ từng phương thức HTTP (chỉ bao gồm GET, POST, PUT, DELETE; đã loại bỏ hoàn toàn PATCH). Hệ thống có tổng cộng **39 API Endpoints**:
 
 ### 1. Phân hệ Tài khoản & Xác thực (`users`) - 9 APIs
 
@@ -153,6 +154,83 @@ Server sẽ chạy mặc định tại địa chỉ: `http://127.0.0.1:8000/`
 
 ## 🎯 Kịch Bản Demo Test Tự Động Hóa Qua Postman Collection
 
+### 7. Phân hệ Báo Cáo & Phân Tích — Module OOP tự xây dựng - 2 APIs
+
+| STT | Phương thức | API Endpoint | Chức năng chi tiết | Module OOP |
+|:---:|:---:|---|---|---|
+| **38** | `GET` | `/api/v1/transactions/reports/analysis/` | Phân tích tổng hợp chi tiêu: theo ngày, theo danh mục, theo ví (đa hình) | `phan_tich_chi_tieu.py` |
+| **39** | `GET` | `/api/v1/transactions/reports/export/?format=json\|csv\|text` | Xuất báo cáo giao dịch đa định dạng: JSON, CSV hoặc Text (đa hình) | `xuat_bao_cao.py` |
+
+---
+
+## 🧩 Module OOP Tự Xây Dựng (Tích Hợp Bên Ngoài)
+
+Đồ án tích hợp **2 module Python thuần** tự xây dựng theo mô hình OOP, áp dụng các kỹ thuật: **Abstract Class (ABC)**, **Kế thừa (Inheritance)**, **Đa hình (Polymorphism)**.
+
+### Module 1: `expenses/phan_tich_chi_tieu.py` — Phân Tích Chi Tiêu
+
+```
+ABCPhanTich (ABC)              ← Lớp trừu tượng gốc, @abstractmethod phan_tich()
+  ├── PhanTichTheoNgay          ← Override: tổng thu/chi theo từng ngày
+  ├── PhanTichTheoDanhMuc       ← Override: tỷ lệ % chi tiêu theo danh mục
+  └── PhanTichTheoVi            ← Override: thu/chi/số giao dịch theo từng ví
+
+BaoCaoTaiChinh                 ← Lớp quản lý: chứa danh sách, gọi đa hình qua map()
+```
+
+### Module 2: `expenses/xuat_bao_cao.py` — Xuất Báo Cáo
+
+```
+ABCXuatBaoCao (ABC)            ← Lớp trừu tượng gốc, @abstractmethod xuat()
+  ├── XuatJSON                  ← Override: xuất chuỗi JSON có thụt dòng
+  ├── XuatCSV                   ← Override: xuất CSV có header
+  └── XuatText                  ← Override: xuất bảng văn bản có đường kẻ
+
+QuanLyXuatBaoCao               ← Lớp quản lý: chứa danh sách, gọi đa hình qua map()
+```
+
+Cả 2 module đều có thể **chạy độc lập** để kiểm thử:
+```bash
+python3 expenses/phan_tich_chi_tieu.py
+python3 expenses/xuat_bao_cao.py
+```
+
+---
+
+## 📖 Tài Liệu API Swagger
+
+Hệ thống tích hợp **Swagger UI** để duyệt và kiểm thử API trực tiếp trên trình duyệt:
+
+| URL | Giao diện |
+|---|---|
+| `http://127.0.0.1:8000/swagger/` | Swagger UI (tương tác được) |
+| `http://127.0.0.1:8000/redoc/` | ReDoc (giao diện đọc tài liệu) |
+
+**Cách sử dụng với JWT:**
+1. Gọi `POST /api/v1/users/login/` để lấy `access_token`
+2. Click nút **Authorize** (biểu tượng 🔓) trên Swagger UI
+3. Nhập: `Bearer <access_token>` → Click **Authorize**
+4. Tất cả API sẽ tự động gửi kèm token xác thực
+
+---
+
+## 🌱 Tạo Dữ Liệu Mẫu (Seed Data)
+
+Để nhanh chóng có dữ liệu demo, chạy script:
+```bash
+python3 seed_data.py
+```
+
+Script sẽ tự động tạo:
+- **3 tài khoản**: admin, leminhdang@gmail.com, quoctung@gmail.com (mật khẩu: `123123123a`)
+- **5 ví**: Techcombank, Momo, Tiền mặt, Vietcombank, ZaloPay
+- **13 danh mục** (có danh mục con đệ quy)
+- **30 giao dịch** phân bố trong tháng hiện tại
+- **2 ngân sách** hạn mức
+
+> ⚠️ Chạy lại script sẽ **xóa toàn bộ data cũ** và tạo mới.
+
+---
 Để giúp buổi thuyết trình đồ án diễn ra trơn tru nhất và gây ấn tượng mạnh với giảng viên, hệ thống đã đi kèm một tệp **Postman Collection tích hợp kịch bản kiểm thử tự động 100%**:
 
 Tệp cấu hình: **[quan_ly_thu_chi_postman_collection.json](file:///Users/dang/Documents/UIT/python312/doan/quan_ly_thu_chi/quan_ly_thu_chi_postman_collection.json)**
