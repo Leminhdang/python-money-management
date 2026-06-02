@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 
     # Thư viện bên ngoài
     'rest_framework',
+    'drf_yasg',
 
     # App của project
     'users',
@@ -129,4 +130,17 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
     'UPDATE_LAST_LOGIN': True,
+}
+
+# Cấu hình Swagger – cho phep test API voi JWT token
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Nhap token theo format: Bearer <access_token>',
+        }
+    },
+    'USE_SESSION_AUTH': False,
 }

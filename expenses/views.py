@@ -34,6 +34,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Category.objects.none()
         if self.request.user.is_staff or self.request.user.is_superuser:
             return Category.objects.all()
         return Category.objects.filter(userId=self.request.user)
@@ -52,6 +54,8 @@ class WalletViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Wallet.objects.none()
         return Wallet.objects.filter(userId=self.request.user)
 
     def perform_create(self, serializer):
@@ -69,6 +73,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Transaction.objects.none()
         return Transaction.objects.filter(walletId__userId=self.request.user)
 
     @db_transaction.atomic
@@ -414,7 +420,8 @@ class BudgetViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        # Lấy ngân sách mà danh mục thuộc user hiện tại
+        if getattr(self, 'swagger_fake_view', False):
+            return Budget.objects.none()
         return Budget.objects.filter(categoryId__userId=self.request.user)
 
     def perform_create(self, serializer):
@@ -432,6 +439,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Notification.objects.none()
         return Notification.objects.filter(userId=self.request.user)
 
     @action(detail=True, methods=['post'], url_path='mark_read')

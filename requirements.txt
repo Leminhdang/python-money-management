@@ -1,6 +1,7 @@
 Django>=6.0.5
 djangorestframework>=3.17.1
 djangorestframework-simplejwt>=5.5.1
+drf-yasg>=1.21.15
 PyJWT>=2.13.0
 sqlparse>=0.5.5
 asgiref>=3.11.1
