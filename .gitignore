@@ -1,0 +1,35 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+dist/
+build/
+
+# === Django ===
+db.sqlite3
+db.sqlite3-journal
+*.log
+media/
+
+# === Môi trường ===
+.env
+venv/
+env/
+.venv/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === macOS ===
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# === Công cụ phân tích (không thuộc source code) ===
+.understand-anything/
+

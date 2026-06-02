@@ -7,6 +7,11 @@ from django.db import transaction as db_transaction
 from django.db.models import Sum
 from django.db.models.functions import TruncDate
 from decimal import Decimal
+from django.http import HttpResponse
+
+# === Import 2 Module tự xây dựng (OOP) ===
+from .phan_tich_chi_tieu import BaoCaoTaiChinh, PhanTichTheoNgay, PhanTichTheoDanhMuc, PhanTichTheoVi
+from .xuat_bao_cao import QuanLyXuatBaoCao, XuatJSON, XuatCSV, XuatText
 
 from .models import Category, Wallet, Transaction, Budget, Notification, TransactionType
 from .serializers import (
@@ -317,6 +322,106 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 data_by_date[date_str]['expense'] = stat['total_amount']
 
         return Response(list(data_by_date.values()), status=status.HTTP_200_OK)
+
+    # --- 5. API PHÂN TÍCH TỔNG HỢP (Module tự xây dựng: phan_tich_chi_tieu) ---
+
+    @action(detail=False, methods=['get'], url_path='reports/analysis')
+    def reports_analysis(self, request):
+        """
+        API phân tích tổng hợp chi tiêu sử dụng Module OOP tự xây dựng.
+        Áp dụng đa hình: cùng 1 danh sách giao dịch, 3 loại phân tích khác nhau.
+        GET /api/v1/transactions/reports/analysis/
+        """
+        today = timezone.localdate()
+        start_of_month = today.replace(day=1)
+
+        # Lấy giao dịch của user trong tháng hiện tại
+        txs = self.get_queryset().filter(
+            createdAt__date__gte=start_of_month,
+            createdAt__date__lte=today
+        ).select_related('walletId', 'categoryId')
+
+        # Chuyển đổi QuerySet thành danh sách dict cho module
+        ds_giao_dich = []
+        for tx in txs:
+            ds_giao_dich.append({
+                "date": tx.createdAt.strftime('%Y-%m-%d') if tx.createdAt else "",
+                "type": tx.type,
+                "amount": tx.amount,
+                "category": tx.categoryId.name if tx.categoryId else "Không xác định",
+                "wallet": tx.walletId.name if tx.walletId else "Không xác định",
+            })
+
+        # Sử dụng Module OOP: tạo báo cáo và thêm 3 loại phân tích (đa hình)
+        bao_cao = BaoCaoTaiChinh(f"Tháng {today.strftime('%m/%Y')}")
+        bao_cao.them_phan_tich(PhanTichTheoNgay())
+        bao_cao.them_phan_tich(PhanTichTheoDanhMuc())
+        bao_cao.them_phan_tich(PhanTichTheoVi())
+
+        # Gọi đa hình: mỗi loại phân tích tự xử lý theo cách riêng
+        bao_cao.chay_phan_tich(ds_giao_dich)
+
+        return Response({
+            "month": today.strftime('%m/%Y'),
+            "totalTransactions": len(ds_giao_dich),
+            "analysis": bao_cao.ket_qua_tong_hop()
+        }, status=status.HTTP_200_OK)
+
+    # --- 6. API XUẤT BÁO CÁO ĐA ĐỊNH DẠNG (Module tự xây dựng: xuat_bao_cao) ---
+
+    @action(detail=False, methods=['get'], url_path='reports/export')
+    def reports_export(self, request):
+        """
+        API xuất báo cáo giao dịch ra nhiều định dạng sử dụng Module OOP tự xây dựng.
+        Áp dụng đa hình: cùng 1 data, xuất ra JSON / CSV / Text.
+        GET /api/v1/transactions/reports/export/?format=json|csv|text
+        """
+        today = timezone.localdate()
+        start_of_month = today.replace(day=1)
+        dinh_dang = request.query_params.get('format', 'json').lower()
+
+        # Lấy giao dịch của user trong tháng hiện tại
+        txs = self.get_queryset().filter(
+            createdAt__date__gte=start_of_month,
+            createdAt__date__lte=today
+        ).select_related('walletId', 'categoryId')
+
+        ds_giao_dich = []
+        for tx in txs:
+            ds_giao_dich.append({
+                "date": tx.createdAt.strftime('%Y-%m-%d') if tx.createdAt else "",
+                "type": tx.type,
+                "amount": tx.amount,
+                "category": tx.categoryId.name if tx.categoryId else "Không xác định",
+                "wallet": tx.walletId.name if tx.walletId else "Không xác định",
+                "note": tx.note or "",
+            })
+
+        # Sử dụng Module OOP: tạo quản lý xuất và thêm các định dạng
+        ql_xuat = QuanLyXuatBaoCao(f"Báo cáo tháng {today.strftime('%m/%Y')}")
+
+        if dinh_dang == 'csv':
+            xuat = XuatCSV()
+            xuat.xuat(ds_giao_dich)
+            response = HttpResponse(xuat.lay_noi_dung(), content_type='text/csv; charset=utf-8')
+            response['Content-Disposition'] = f'attachment; filename="bao_cao_{today.strftime("%m_%Y")}.csv"'
+            return response
+
+        elif dinh_dang == 'text':
+            xuat = XuatText()
+            xuat.xuat(ds_giao_dich)
+            return HttpResponse(xuat.lay_noi_dung(), content_type='text/plain; charset=utf-8')
+
+        else:
+            # Mặc định: trả JSON qua DRF Response
+            xuat = XuatJSON()
+            xuat.xuat(ds_giao_dich)
+            return Response({
+                "month": today.strftime('%m/%Y'),
+                "format": "JSON",
+                "totalTransactions": len(ds_giao_dich),
+                "data": ds_giao_dich
+            }, status=status.HTTP_200_OK)
 
     # --- API CHUYỂN KHOẢN ---
 
