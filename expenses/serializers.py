@@ -7,12 +7,12 @@ class CategorySerializer(serializers.ModelSerializer):
     Serializer cho Category – hỗ trợ hiển thị danh mục con lồng nhau (đệ quy).
     Khi GET danh mục cha sẽ tự kéo theo mảng subcategories bên trong.
     """
-    subcategories = serializers.SerializerMethodField()
+    subcategories = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Category
         fields = ('id', 'name', 'userId', 'parentId', 'type', 'subcategories')
-        read_only_fields = ('id', 'userId')
+        read_only_fields = ('id', 'userId', 'subcategories')
 
     def get_subcategories(self, obj):
         # Lấy danh mục con rồi đệ quy gọi lại chính serializer này

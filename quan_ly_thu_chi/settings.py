@@ -114,10 +114,10 @@ STATIC_URL = 'static/'
 # Dùng model User tùy chỉnh thay cho User mặc định
 AUTH_USER_MODEL = 'users.User'
 
-# Cấu hình DRF: xác thực bằng JWT làm chính
+# Cấu hình DRF: xác thực bằng JWT (hỗ trợ nhập token thuần trên Swagger)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'quan_ly_thu_chi.authentication.SwaggerJWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
 }
@@ -132,15 +132,16 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,
 }
 
-# Cấu hình Swagger – cho phep test API voi JWT token
+# Cấu hình Swagger – chỉ cần nhập access_token, không cần gõ Bearer
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'Bearer': {
             'type': 'apiKey',
             'name': 'Authorization',
             'in': 'header',
-            'description': 'Nhap token theo format: Bearer <access_token>',
+            'description': 'Chi can nhap access_token (khong can go "Bearer ")',
         }
     },
     'USE_SESSION_AUTH': False,
+    'PERSIST_AUTH': True,
 }

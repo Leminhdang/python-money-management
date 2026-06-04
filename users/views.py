@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
 
@@ -35,7 +36,14 @@ class LoginAPIView(APIView):
 
     @swagger_auto_schema(
         operation_summary="Đăng nhập hệ thống (Lấy JWT Token)",
-        request_body=LoginSerializer,
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            required=['usernameOrEmail', 'password'],
+            properties={
+                'usernameOrEmail': openapi.Schema(type=openapi.TYPE_STRING, description='Tài khoản hoặc Email'),
+                'password': openapi.Schema(type=openapi.TYPE_STRING, description='Mật khẩu'),
+            },
+        ),
         tags=['Tài Khoản & Xác Thực'],
     )
     def post(self, request, *args, **kwargs):
