@@ -1,20 +1,20 @@
 {
   "info": {
-    "_postman_id": "full-39-endpoints-auto-vars",
-    "name": "UIT - Quản lý Thu Chi API (Đầy đủ 39 Endpoints + Auto Variables)",
-    "description": "Collection đầy đủ 39 API endpoints với cơ chế Auto-Variables Script.\n\nCơ chế hoạt động:\n- Tab Tests trong mỗi request POST tự động bắt UUID/Token từ Response JSON\n- Lưu vào Collection Variables để các request sau dùng lại\n- Loại bỏ 100% thao tác copy-paste thủ công\n\nBiến tự động: access_token, wallet_a_id, wallet_b_id, category_id, budget_id, transaction_id, notification_id",
+    "_postman_id": "full-39-endpoints-bruno",
+    "name": "UIT - Quản lý Thu Chi API (39 Endpoints + Auto Variables) [Postman]",
+    "description": "Collection đầy đủ 39 API endpoints.\n\nAuto-Variables Script (Bruno):\n- res.getBody() lấy JSON response\n- bru.setVar() lưu biến tự động\n\nLưu ý:\n- Request 05-09, 13-14: Cần đăng nhập Admin\n- Request 20: Chạy sau request 26\n- Request 37-39: Cần có cảnh báo (chạy request 22 trước)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "1. Quản lý Tài khoản & Xác thực (9 API)",
+      "name": "1. Tài khoản & Xác thực (9 API)",
       "item": [
         {
           "name": "01. Đăng ký tài khoản",
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Tạo tài khoản mới, mật khẩu tự mã hóa.",
+            "description": "Tạo tài khoản mới, mật khẩu tự mã hóa PBKDF2.",
             "url": {
               "raw": "{{base_url}}/api/v1/users/register/",
               "host": [
@@ -58,7 +58,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Đăng nhập lấy JWT Token. Script tự lưu access_token.",
+            "description": "Đăng nhập lấy JWT. Script tự lưu access_token + refresh_token.",
             "url": {
               "raw": "{{base_url}}/api/v1/users/login/",
               "host": [
@@ -121,7 +121,7 @@
           "request": {
             "method": "PUT",
             "header": [],
-            "description": "Sửa thông tin cá nhân.",
+            "description": "Sửa thông tin cá nhân (email là trường bắt buộc).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -147,7 +147,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Lê Minh Đăng Updated\",\n  \"phoneNumber\": \"0909123456\",\n  \"address\": \"Q.1, TP.HCM\"\n}",
+              "raw": "{\n  \"email\": \"leminhdang@uit.edu.vn\",\n  \"name\": \"Lê Minh Đăng Updated\",\n  \"phoneNumber\": \"0909123456\",\n  \"address\": \"Q.1, TP.HCM\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -162,7 +162,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Admin xem tất cả user.",
+            "description": "Xem tất cả user.\n⚠️ Cần đăng nhập bằng tài khoản Admin (admin@uit.edu.vn / admin).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -194,7 +194,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Admin tạo user mới.",
+            "description": "Admin tạo user mới.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -235,7 +235,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Admin xem 1 user.",
+            "description": "Admin xem 1 user.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -268,7 +268,7 @@
           "request": {
             "method": "PUT",
             "header": [],
-            "description": "Admin cập nhật user.",
+            "description": "Admin cập nhật user.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -295,7 +295,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Updated Name\",\n  \"phoneNumber\": \"0999888777\"\n}",
+              "raw": "{\n  \"email\": \"newuser@test.com\",\n  \"name\": \"Updated Name\",\n  \"phoneNumber\": \"0999888777\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -310,7 +310,7 @@
           "request": {
             "method": "DELETE",
             "header": [],
-            "description": "Admin xóa user.",
+            "description": "Admin xóa user.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -459,11 +459,11 @@
           "response": []
         },
         {
-          "name": "13. Sửa danh mục",
+          "name": "13. [Admin] Sửa danh mục",
           "request": {
             "method": "PUT",
             "header": [],
-            "description": "Cập nhật danh mục.",
+            "description": "Cập nhật danh mục.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -500,11 +500,11 @@
           "response": []
         },
         {
-          "name": "14. Xóa danh mục",
+          "name": "14. [Admin] Xóa danh mục",
           "request": {
             "method": "DELETE",
             "header": [],
-            "description": "Xóa danh mục.",
+            "description": "Xóa danh mục.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -584,7 +584,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Tạo ví A số dư 5tr.",
+            "description": "Tạo ví A số dư 5.000.000 đ.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -636,7 +636,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Tạo ví B số dư 1tr.",
+            "description": "Tạo ví B số dư 1.000.000 đ.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -749,7 +749,7 @@
           "request": {
             "method": "DELETE",
             "header": [],
-            "description": "Xóa ví B.",
+            "description": "Xóa ví B.\n⚠️ Chạy SAU request 26 (Chuyển khoản) để tránh lỗi ví không tồn tại.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -829,7 +829,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Chi 950k từ ví A, tự trừ ví + ngân sách + cảnh báo.",
+            "description": "Chi 950.000 đ từ ví A. Tự trừ ví + trừ ngân sách + sinh cảnh báo.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -970,11 +970,11 @@
           "response": []
         },
         {
-          "name": "26. Chuyển khoản nội bộ",
+          "name": "26. Chuyển khoản nội bộ (A → B)",
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Chuyển 500k từ ví A sang ví B.",
+            "description": "Chuyển 500.000 đ từ ví A sang ví B. Tạo 2 bản ghi lịch sử đối sánh.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1015,7 +1015,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Tổng thu, tổng chi, số dư ròng.",
+            "description": "Tổng thu, tổng chi, số dư ròng trong tháng hiện tại.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1048,7 +1048,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Phân tích chi tiêu theo danh mục.",
+            "description": "Phân tích chi tiêu theo danh mục (data biểu đồ tròn).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1081,7 +1081,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Biến động thu chi theo từng ngày.",
+            "description": "Biến động thu chi theo từng ngày (data biểu đồ cột).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1110,7 +1110,7 @@
           "response": []
         },
         {
-          "name": "30. Phân tích chi tiêu OOP (Module phan_tich_chi_tieu)",
+          "name": "30. Phân tích chi tiêu OOP",
           "request": {
             "method": "GET",
             "header": [],
@@ -1143,11 +1143,11 @@
           "response": []
         },
         {
-          "name": "31. Xuất báo cáo OOP (Module xuat_bao_cao)",
+          "name": "31. Xuất báo cáo OOP",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Xuất báo cáo JSON/CSV/Text dùng module xuat_bao_cao.py.",
+            "description": "Xuất báo cáo JSON/CSV/Text dùng module xuat_bao_cao.py. Đổi format=csv hoặc text.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1235,7 +1235,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Tạo hạn mức 1tr cho ăn uống, gắn ví A.",
+            "description": "Tạo hạn mức 1.000.000 đ cho danh mục ăn uống, gắn ví A.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1378,10 +1378,10 @@
       ]
     },
     {
-      "name": "6. Cảnh báo Tài chính (5 API)",
+      "name": "6. Cảnh báo Tài chính (4 API)",
       "item": [
         {
-          "name": "37. Xem danh sách cảnh báo",
+          "name": "37. Xem danh sách cảnh báo (Auto ID)",
           "event": [
             {
               "listen": "test",
@@ -1397,7 +1397,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Xem tất cả thông báo cảnh báo ngân sách.",
+            "description": "Xem tất cả thông báo cảnh báo ngân sách.\n⚠️ Cần có cảnh báo trong hệ thống (chạy request 22 trước khi ngân sách < 10%).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1428,7 +1428,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Xem 1 thông báo.",
+            "description": "Xem 1 thông báo.\n⚠️ Cần notification_id từ request 37.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1460,7 +1460,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Đánh dấu đã đọc.",
+            "description": "Đánh dấu 1 thông báo đã đọc.\n⚠️ Cần notification_id từ request 37.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1493,7 +1493,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Đánh dấu tất cả đã đọc.",
+            "description": "Đánh dấu tất cả thông báo đã đọc.",
             "auth": {
               "type": "bearer",
               "bearer": [
