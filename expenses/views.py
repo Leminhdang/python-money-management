@@ -1,8 +1,7 @@
 from rest_framework import viewsets, status, serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.utils import timezone
 from django.db import transaction as db_transaction
@@ -41,8 +40,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            return Category.objects.none()
         if self.request.user.is_staff or self.request.user.is_superuser:
             return Category.objects.all()
         return Category.objects.filter(userId=self.request.user)
@@ -61,8 +58,6 @@ class WalletViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            return Wallet.objects.none()
         return Wallet.objects.filter(userId=self.request.user)
 
     def perform_create(self, serializer):
@@ -80,8 +75,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            return Transaction.objects.none()
         return Transaction.objects.filter(walletId__userId=self.request.user)
 
     @db_transaction.atomic
@@ -224,11 +217,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     # --- API THỐNG KÊ & BÁO CÁO ---
 
-    @swagger_auto_schema(
-        operation_summary="Thống kê dòng tiền Thu vs Chi trong tháng",
-        operation_description="Trả về tổng thu, tổng chi và số dư ròng trong tháng hiện tại.",
-        tags=['Thống Kê & Báo Cáo'],
-    )
     @action(detail=False, methods=['get'], url_path='reports/summary')
     def reports_summary(self, request):
         """
@@ -254,11 +242,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
             "netBalance": net_balance
         }, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        operation_summary="Thống kê tỷ lệ % chi tiêu theo danh mục",
-        operation_description="Trả về tỷ lệ phần trăm chi tiêu phân bổ theo từng danh mục trong tháng.",
-        tags=['Thống Kê & Báo Cáo'],
-    )
     @action(detail=False, methods=['get'], url_path='reports/categories')
     def reports_categories(self, request):
         """
@@ -301,11 +284,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
             "data": report_data
         }, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        operation_summary="Thống kê biến động Thu/Chi theo ngày",
-        operation_description="Trả về số liệu thu vs chi theo từng ngày trong tháng hiện tại.",
-        tags=['Thống Kê & Báo Cáo'],
-    )
     @action(detail=False, methods=['get'], url_path='reports/daily')
     def reports_daily(self, request):
         """
@@ -342,13 +320,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     # --- 5. API PHÂN TÍCH TỔNG HỢP (Module tự xây dựng: phan_tich_chi_tieu) ---
 
-    @swagger_auto_schema(
-        operation_summary="Phân tích tổng hợp chi tiêu (Module OOP tự xây dựng)",
-        operation_description="Sử dụng module phan_tich_chi_tieu.py với đa hình OOP: "
-                             "cùng 1 danh sách giao dịch, 3 loại phân tích khác nhau "
-                             "(theo ngày, theo danh mục, theo ví).",
-        tags=['Báo Cáo & Phân Tích (Module OOP)'],
-    )
     @action(detail=False, methods=['get'], url_path='reports/analysis')
     def reports_analysis(self, request):
         """
@@ -393,21 +364,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     # --- 6. API XUẤT BÁO CÁO ĐA ĐỊNH DẠNG (Module tự xây dựng: xuat_bao_cao) ---
 
-    @swagger_auto_schema(
-        operation_summary="Xuất báo cáo đa định dạng (Module OOP tự xây dựng)",
-        operation_description="Sử dụng module xuat_bao_cao.py với đa hình OOP: "
-                             "cùng 1 data xuất ra JSON, CSV hoặc Text.",
-        tags=['Báo Cáo & Phân Tích (Module OOP)'],
-        manual_parameters=[
-            openapi.Parameter(
-                'format', openapi.IN_QUERY,
-                description='Định dạng xuất: json (mặc định), csv, text',
-                type=openapi.TYPE_STRING,
-                enum=['json', 'csv', 'text'],
-                default='json',
-            ),
-        ],
-    )
     @action(detail=False, methods=['get'], url_path='reports/export')
     def reports_export(self, request):
         """
@@ -464,20 +420,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     # --- API CHUYỂN KHOẢN ---
 
-    @swagger_auto_schema(
-        operation_summary="Chuyển khoản nội bộ giữa 2 ví",
-        tags=['Giao Dịch'],
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['fromWalletId', 'toWalletId', 'amount'],
-            properties={
-                'fromWalletId': openapi.Schema(type=openapi.TYPE_STRING, description='UUID ví gửi'),
-                'toWalletId': openapi.Schema(type=openapi.TYPE_STRING, description='UUID ví nhận'),
-                'amount': openapi.Schema(type=openapi.TYPE_NUMBER, description='Số tiền chuyển'),
-                'note': openapi.Schema(type=openapi.TYPE_STRING, description='Ghi chú (tùy chọn)'),
-            },
-        ),
-    )
     @action(detail=False, methods=['post'], url_path='transfer')
     @db_transaction.atomic
     def transfer(self, request):
@@ -578,8 +520,6 @@ class BudgetViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            return Budget.objects.none()
         return Budget.objects.filter(categoryId__userId=self.request.user)
 
     def perform_create(self, serializer):
@@ -597,15 +537,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete', 'head', 'options']
 
     def get_queryset(self):
-        if getattr(self, 'swagger_fake_view', False):
-            return Notification.objects.none()
         return Notification.objects.filter(userId=self.request.user)
 
-    @swagger_auto_schema(
-        operation_summary="Đánh dấu 1 thông báo đã đọc",
-        tags=['Thông Báo'],
-        request_body=openapi.Schema(type=openapi.TYPE_OBJECT, properties={}),
-    )
     @action(detail=True, methods=['post'], url_path='mark_read')
     def mark_read(self, request, pk=None):
         """Đánh dấu 1 thông báo đã đọc."""
@@ -614,11 +547,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
         notification.save()
         return Response({"message": "Đã đánh dấu thông báo là đã đọc."}, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        operation_summary="Đánh dấu tất cả thông báo đã đọc",
-        tags=['Thông Báo'],
-        request_body=openapi.Schema(type=openapi.TYPE_OBJECT, properties={}),
-    )
     @action(detail=False, methods=['post'], url_path='mark_all_read')
     def mark_all_read(self, request):
         """Đánh dấu tất cả thông báo đã đọc."""

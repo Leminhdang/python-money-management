@@ -30,7 +30,6 @@ INSTALLED_APPS = [
 
     # Thư viện bên ngoài
     'rest_framework',
-    'drf_yasg',
 
     # App của project
     'users',
@@ -114,10 +113,10 @@ STATIC_URL = 'static/'
 # Dùng model User tùy chỉnh thay cho User mặc định
 AUTH_USER_MODEL = 'users.User'
 
-# Cấu hình DRF: xác thực bằng JWT (hỗ trợ nhập token thuần trên Swagger)
+# Cấu hình DRF: xác thực bằng JWT
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'quan_ly_thu_chi.authentication.SwaggerJWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
 }
@@ -132,16 +131,3 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,
 }
 
-# Cấu hình Swagger – chỉ cần nhập access_token, không cần gõ Bearer
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header',
-            'description': 'Chi can nhap access_token (khong can go "Bearer ")',
-        }
-    },
-    'USE_SESSION_AUTH': False,
-    'PERSIST_AUTH': True,
-}

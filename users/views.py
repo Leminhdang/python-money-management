@@ -2,8 +2,6 @@ from rest_framework import status, viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
 from .models import User
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer
 
@@ -13,11 +11,6 @@ class RegisterAPIView(APIView):
 
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_summary="Đăng ký tài khoản mới",
-        request_body=RegisterSerializer,
-        tags=['Tài Khoản & Xác Thực'],
-    )
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
@@ -34,18 +27,6 @@ class LoginAPIView(APIView):
 
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema(
-        operation_summary="Đăng nhập hệ thống (Lấy JWT Token)",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            required=['usernameOrEmail', 'password'],
-            properties={
-                'usernameOrEmail': openapi.Schema(type=openapi.TYPE_STRING, description='Tài khoản hoặc Email'),
-                'password': openapi.Schema(type=openapi.TYPE_STRING, description='Mật khẩu'),
-            },
-        ),
-        tags=['Tài Khoản & Xác Thực'],
-    )
     def post(self, request, *args, **kwargs):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
@@ -58,19 +39,10 @@ class UserProfileAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_summary="Xem thông tin cá nhân",
-        tags=['Tài Khoản & Xác Thực'],
-    )
     def get(self, request, *args, **kwargs):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        operation_summary="Cập nhật thông tin cá nhân",
-        request_body=UserSerializer,
-        tags=['Tài Khoản & Xác Thực'],
-    )
     def put(self, request, *args, **kwargs):
         serializer = UserSerializer(request.user, data=request.data, partial=False)
         if serializer.is_valid():
