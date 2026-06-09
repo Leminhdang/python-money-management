@@ -1,20 +1,20 @@
 {
   "info": {
-    "_postman_id": "full-39-endpoints-bruno",
-    "name": "UIT - Quản lý Thu Chi API (39 Endpoints + Auto Variables) [Postman]",
-    "description": "Collection đầy đủ 39 API endpoints.\n\nAuto-Variables Script (Bruno):\n- res.getBody() lấy JSON response\n- bru.setVar() lưu biến tự động\n\nLưu ý:\n- Request 05-09, 13-14: Cần đăng nhập Admin\n- Request 20: Chạy sau request 26\n- Request 37-39: Cần có cảnh báo (chạy request 22 trước)",
+    "_postman_id": "full-39-endpoints-v4",
+    "name": "UIT - Quản lý Thu Chi API (39 Endpoints)",
+    "description": "Mô phỏng hành vi người dùng thực tế qua 16 bước liên hoàn.\n\n⚠️ Trước khi chạy:\n  1. python manage.py flush --no-input\n  2. DJANGO_SUPERUSER_PASSWORD=admin123456 python manage.py createsuperuser --username admin --email admin@uit.edu.vn --noinput\n  3. python manage.py runserver",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "1. Tài khoản & Xác thực (9 API)",
+      "name": "Kịch bản nghiệp vụ 16 bước liên hoàn",
       "item": [
         {
-          "name": "01. Đăng ký tài khoản",
+          "name": "Bước 01. Đăng ký tài khoản mới",
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Tạo tài khoản mới, mật khẩu tự mã hóa PBKDF2.",
+            "description": "Minh Đăng — sinh viên UIT — tạo tài khoản trên hệ thống quản lý thu chi để bắt đầu kiểm soát tài chính cá nhân.",
             "url": {
               "raw": "{{base_url}}/api/v1/users/register/",
               "host": [
@@ -41,7 +41,7 @@
           "response": []
         },
         {
-          "name": "02. Đăng nhập (Auto Token)",
+          "name": "Bước 02. Đăng nhập hệ thống",
           "event": [
             {
               "listen": "test",
@@ -49,8 +49,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "var d = pm.response.json();",
-                  "if (d.access) { pm.collectionVariables.set('access_token', d.access); console.log('Auto saved access_token'); }",
-                  "if (d.refresh) { pm.collectionVariables.set('refresh_token', d.refresh); console.log('Auto saved refresh_token'); }"
+                  "if (d.access) { pm.collectionVariables.set('access_token', d.access); }",
+                  "if (d.refresh) { pm.collectionVariables.set('refresh_token', d.refresh); }"
                 ]
               }
             }
@@ -58,7 +58,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Đăng nhập lấy JWT. Script tự lưu access_token + refresh_token.",
+            "description": "Đăng nhập bằng email đã đăng ký → nhận JWT Token để xác thực tất cả thao tác sau.",
             "url": {
               "raw": "{{base_url}}/api/v1/users/login/",
               "host": [
@@ -85,297 +85,7 @@
           "response": []
         },
         {
-          "name": "03. Xem hồ sơ cá nhân",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Xem thông tin user đang đăng nhập.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/users/profile/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "profile",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "04. Cập nhật hồ sơ cá nhân",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "description": "Sửa thông tin cá nhân (email là trường bắt buộc).",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/users/profile/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "profile",
-                ""
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"leminhdang@uit.edu.vn\",\n  \"name\": \"Lê Minh Đăng Updated\",\n  \"phoneNumber\": \"0909123456\",\n  \"address\": \"Q.1, TP.HCM\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "05. [Admin] Danh sách tài khoản",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Xem tất cả user.\n⚠️ Cần đăng nhập bằng tài khoản Admin (admin@uit.edu.vn / admin).",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/users/admin/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "admin",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "06. [Admin] Tạo tài khoản",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "description": "Admin tạo user mới.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/users/admin/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "admin",
-                ""
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@test.com\",\n  \"password\": \"123123123a\",\n  \"name\": \"User Moi\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "07. [Admin] Xem chi tiết tài khoản",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Admin xem 1 user.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/users/admin/{{admin_user_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "admin",
-                "{{admin_user_id}}",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "08. [Admin] Sửa tài khoản",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "description": "Admin cập nhật user.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/users/admin/{{admin_user_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "admin",
-                "{{admin_user_id}}",
-                ""
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"newuser@test.com\",\n  \"name\": \"Updated Name\",\n  \"phoneNumber\": \"0999888777\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "09. [Admin] Xóa tài khoản",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "description": "Admin xóa user.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/users/admin/{{admin_user_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "admin",
-                "{{admin_user_id}}",
-                ""
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "2. Quản lý Danh mục (5 API)",
-      "item": [
-        {
-          "name": "10. Xem danh sách danh mục (cây đệ quy)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Trả về cấu trúc cây lồng nhau.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "categories",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "11. Tạo danh mục mới (Auto ID)",
+          "name": "Bước 03. Tạo ví ngân hàng Techcombank",
           "event": [
             {
               "listen": "test",
@@ -383,7 +93,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "var d = pm.response.json();",
-                  "if (d.id) { pm.collectionVariables.set('category_id', d.id); console.log('Auto saved category_id: ' + d.id); }"
+                  "if (d.id) { pm.collectionVariables.set('wallet_a_id', d.id); }"
                 ]
               }
             }
@@ -391,200 +101,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Tạo danh mục chi tiêu.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "categories",
-                ""
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Ăn uống hàng ngày\",\n  \"type\": \"expense\",\n  \"parentId\": null\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "12. Xem chi tiết danh mục",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Xem 1 danh mục.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories/{{category_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "categories",
-                "{{category_id}}",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "13. [Admin] Sửa danh mục",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "description": "Cập nhật danh mục.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories/{{category_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "categories",
-                "{{category_id}}",
-                ""
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Ăn uống (đã sửa)\",\n  \"type\": \"expense\",\n  \"parentId\": null\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "14. [Admin] Xóa danh mục",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "description": "Xóa danh mục.\n⚠️ Cần đăng nhập bằng tài khoản Admin.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/categories/{{category_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "categories",
-                "{{category_id}}",
-                ""
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "3. Quản lý Ví tiền (5 API)",
-      "item": [
-        {
-          "name": "15. Xem danh sách ví tiền",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Xem tất cả ví của user.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/wallets/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "wallets",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "16. Tạo Ví Techcombank (Auto ID)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "var d = pm.response.json();",
-                  "if (d.id) { pm.collectionVariables.set('wallet_a_id', d.id); console.log('Auto saved wallet_a_id: ' + d.id); }"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "description": "Tạo ví A số dư 5.000.000 đ.",
+            "description": "Thêm ví chính — tài khoản ATM Techcombank với số dư ban đầu 5.000.000 đ.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -620,7 +137,7 @@
           "response": []
         },
         {
-          "name": "17. Tạo Ví Momo (Auto ID)",
+          "name": "Bước 04. Tạo ví điện tử Momo",
           "event": [
             {
               "listen": "test",
@@ -628,7 +145,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "var d = pm.response.json();",
-                  "if (d.id) { pm.collectionVariables.set('wallet_b_id', d.id); console.log('Auto saved wallet_b_id: ' + d.id); }"
+                  "if (d.id) { pm.collectionVariables.set('wallet_b_id', d.id); }"
                 ]
               }
             }
@@ -636,7 +153,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Tạo ví B số dư 1.000.000 đ.",
+            "description": "Thêm ví phụ — ví Momo tiết kiệm với số dư ban đầu 1.000.000 đ.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -672,148 +189,7 @@
           "response": []
         },
         {
-          "name": "18. Xem chi tiết ví",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Xem số dư và thông tin ví.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/wallets/{{wallet_a_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "wallets",
-                "{{wallet_a_id}}",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "19. Sửa thông tin ví",
-          "request": {
-            "method": "PUT",
-            "header": [],
-            "description": "Cập nhật tên ví.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/wallets/{{wallet_a_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "wallets",
-                "{{wallet_a_id}}",
-                ""
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Techcombank Updated\",\n  \"type\": \"ATM\",\n  \"amount\": \"5000000.00\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "20. Xóa ví tiền",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "description": "Xóa ví B.\n⚠️ Chạy SAU request 26 (Chuyển khoản) để tránh lỗi ví không tồn tại.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/wallets/{{wallet_b_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "wallets",
-                "{{wallet_b_id}}",
-                ""
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "4. Quản lý Giao dịch (10 API)",
-      "item": [
-        {
-          "name": "21. Xem lịch sử giao dịch",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Danh sách giao dịch mới nhất.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/transactions/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "transactions",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "22. Tạo giao dịch chi tiêu (Auto ID)",
+          "name": "Bước 05. Tạo danh mục chi tiêu 'Ăn uống'",
           "event": [
             {
               "listen": "test",
@@ -821,7 +197,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "var d = pm.response.json();",
-                  "if (d.id) { pm.collectionVariables.set('transaction_id', d.id); console.log('Auto saved transaction_id: ' + d.id); }"
+                  "if (d.id) { pm.collectionVariables.set('category_id', d.id); }"
                 ]
               }
             }
@@ -829,7 +205,151 @@
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Chi 950.000 đ từ ví A. Tự trừ ví + trừ ngân sách + sinh cảnh báo.",
+            "description": "Phân loại khoản chi: tạo danh mục 'Ăn uống hàng ngày' thuộc loại expense.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ăn uống hàng ngày\",\n  \"type\": \"expense\",\n  \"parentId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bước 06. Tạo danh mục thu nhập 'Lương'",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var d = pm.response.json();",
+                  "if (d.id) { pm.collectionVariables.set('income_category_id', d.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "Phân loại khoản thu: tạo danh mục 'Lương tháng' thuộc loại income.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lương tháng\",\n  \"type\": \"income\",\n  \"parentId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bước 07. Đặt ngân sách hạn mức ăn uống",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var d = pm.response.json();",
+                  "if (d.id) { pm.collectionVariables.set('budget_id', d.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "Đặt hạn mức chi tiêu ăn uống tối đa 1.000.000 đ/tháng, gắn vào ví Techcombank. Hệ thống sẽ tự theo dõi và cảnh báo khi sắp vượt.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/budgets/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "budgets",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ngân Sách Ăn Uống Tháng 6\",\n  \"categoryId\": \"{{category_id}}\",\n  \"amount\": \"1000000.00\",\n  \"loop\": false,\n  \"fromDate\": \"2026-06-01\",\n  \"toDate\": \"2026-06-30\",\n  \"note\": \"Hạn mức tối đa cho ăn uống\",\n  \"wallets\": [\n    \"{{wallet_a_id}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bước 08. Ghi nhận thu nhập lương 2.000.000đ",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "Nhận lương tháng 6 — hệ thống tự cộng 2.000.000 đ vào ví Techcombank.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -854,7 +374,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"walletId\": \"{{wallet_a_id}}\",\n  \"categoryId\": \"{{category_id}}\",\n  \"amount\": \"950000.00\",\n  \"type\": \"expense\",\n  \"note\": \"Đi ăn lẩu buffet UIT\"\n}",
+              "raw": "{\n  \"walletId\": \"{{wallet_a_id}}\",\n  \"categoryId\": \"{{income_category_id}}\",\n  \"amount\": \"2000000.00\",\n  \"type\": \"income\",\n  \"note\": \"Nhận lương tháng 6/2026\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -865,43 +385,23 @@
           "response": []
         },
         {
-          "name": "23. Xem chi tiết giao dịch",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Xem 1 giao dịch.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/transactions/{{transaction_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "transactions",
-                "{{transaction_id}}",
-                ""
-              ]
+          "name": "Bước 09. Ghi nhận chi tiêu ăn uống 950.000đ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var d = pm.response.json();",
+                  "if (d.id) { pm.collectionVariables.set('transaction_id', d.id); }"
+                ]
+              }
             }
-          },
-          "response": []
-        },
-        {
-          "name": "24. Sửa giao dịch (Auto bù trừ)",
+          ],
           "request": {
-            "method": "PUT",
+            "method": "POST",
             "header": [],
-            "description": "Sửa số tiền, hệ thống tự bù trừ chênh lệch.",
+            "description": "Chi 950.000 đ ăn lẩu → hệ thống tự trừ ví Techcombank, trừ ngân sách, và sinh cảnh báo vì ngân sách còn dưới 10%.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -913,7 +413,7 @@
               ]
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/transactions/{{transaction_id}}/",
+              "raw": "{{base_url}}/api/v1/transactions/",
               "host": [
                 "{{base_url}}"
               ],
@@ -921,13 +421,12 @@
                 "api",
                 "v1",
                 "transactions",
-                "{{transaction_id}}",
                 ""
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"walletId\": \"{{wallet_a_id}}\",\n  \"categoryId\": \"{{category_id}}\",\n  \"amount\": \"800000.00\",\n  \"type\": \"expense\",\n  \"note\": \"Sửa lại số tiền\"\n}",
+              "raw": "{\n  \"walletId\": \"{{wallet_a_id}}\",\n  \"categoryId\": \"{{category_id}}\",\n  \"amount\": \"950000.00\",\n  \"type\": \"expense\",\n  \"note\": \"Đi ăn lẩu buffet cuối tuần\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -938,43 +437,11 @@
           "response": []
         },
         {
-          "name": "25. Xóa giao dịch (Auto hoàn ví)",
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "description": "Xóa giao dịch, tự hoàn tiền ví + ngân sách.",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/transactions/{{transaction_id}}/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "transactions",
-                "{{transaction_id}}",
-                ""
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "26. Chuyển khoản nội bộ (A → B)",
+          "name": "Bước 10. Chuyển khoản Techcombank → Momo",
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Chuyển 500.000 đ từ ví A sang ví B. Tạo 2 bản ghi lịch sử đối sánh.",
+            "description": "Chuyển 500.000 đ từ ví chính sang ví Momo để tiết kiệm. Hệ thống tạo 2 bản ghi đối sánh (1 chi từ ví A, 1 thu vào ví B).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1000,7 +467,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"fromWalletId\": \"{{wallet_a_id}}\",\n  \"toWalletId\": \"{{wallet_b_id}}\",\n  \"amount\": \"500000.00\",\n  \"note\": \"Chuyển tiền Techcombank sang Momo\"\n}",
+              "raw": "{\n  \"fromWalletId\": \"{{wallet_a_id}}\",\n  \"toWalletId\": \"{{wallet_b_id}}\",\n  \"amount\": \"500000.00\",\n  \"note\": \"Chuyển tiền tiết kiệm sang Momo\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1011,11 +478,54 @@
           "response": []
         },
         {
-          "name": "27. Thống kê tổng thu chi tháng",
+          "name": "Bước 11. Kiểm tra cảnh báo ngân sách",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var d = pm.response.json();",
+                  "if (d && d.length > 0 && d[0].id) { pm.collectionVariables.set('notification_id', d[0].id); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Tổng thu, tổng chi, số dư ròng trong tháng hiện tại.",
+            "description": "Xem danh sách cảnh báo — hệ thống đã tự sinh thông báo 'Ngân sách sắp hết' vì ăn uống đã chi 950k/1tr (còn 5%).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/notifications/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bước 12. Thống kê tổng thu chi tháng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Xem bức tranh tài chính tổng quan: tổng thu 2.000.000 đ, tổng chi 950.000 đ, số dư ròng +1.050.000 đ.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1044,11 +554,11 @@
           "response": []
         },
         {
-          "name": "28. Thống kê % theo danh mục",
+          "name": "Bước 13. Thống kê tỷ lệ chi theo danh mục",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Phân tích chi tiêu theo danh mục (data biểu đồ tròn).",
+            "description": "Phân tích chi tiêu theo danh mục — 100% chi tiêu nằm ở 'Ăn uống' (data cho biểu đồ tròn).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1077,11 +587,11 @@
           "response": []
         },
         {
-          "name": "29. Thống kê dòng tiền theo ngày",
+          "name": "Bước 14. Thống kê dòng tiền theo ngày",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Biến động thu chi theo từng ngày (data biểu đồ cột).",
+            "description": "Xem biến động thu chi theo từng ngày trong tháng (data cho biểu đồ cột).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1110,11 +620,11 @@
           "response": []
         },
         {
-          "name": "30. Phân tích chi tiêu OOP",
+          "name": "Bước 15. Phân tích chi tiêu tổng hợp (OOP)",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Phân tích theo 3 góc nhìn (ngày, danh mục, ví) dùng module phan_tich_chi_tieu.py.",
+            "description": "Sử dụng module phan_tich_chi_tieu.py tự xây dựng — phân tích cùng 1 tập dữ liệu theo 3 góc nhìn khác nhau: theo ngày, theo danh mục, theo ví (áp dụng đa hình OOP).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1143,11 +653,11 @@
           "response": []
         },
         {
-          "name": "31. Xuất báo cáo OOP",
+          "name": "Bước 16. Xuất báo cáo giao dịch (OOP)",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Xuất báo cáo JSON/CSV/Text dùng module xuat_bao_cao.py. Đổi format=csv hoặc text.",
+            "description": "Sử dụng module xuat_bao_cao.py tự xây dựng — xuất toàn bộ giao dịch ra file JSON (có thể đổi sang CSV hoặc Text qua tham số format).",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1185,14 +695,14 @@
       ]
     },
     {
-      "name": "5. Quản lý Ngân sách (5 API)",
+      "name": "API bổ sung — User",
       "item": [
         {
-          "name": "32. Xem danh sách ngân sách",
+          "name": "Xem hồ sơ cá nhân",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Xem tất cả ngân sách đang hoạt động.",
+            "description": "",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1204,14 +714,15 @@
               ]
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/budgets/",
+              "raw": "{{base_url}}/api/v1/users/profile/",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "budgets",
+                "users",
+                "profile",
                 ""
               ]
             }
@@ -1219,23 +730,11 @@
           "response": []
         },
         {
-          "name": "33. Tạo ngân sách mới (Auto ID)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "var d = pm.response.json();",
-                  "if (d.id) { pm.collectionVariables.set('budget_id', d.id); console.log('Auto saved budget_id: ' + d.id); }"
-                ]
-              }
-            }
-          ],
+          "name": "Cập nhật hồ sơ",
           "request": {
-            "method": "POST",
+            "method": "PUT",
             "header": [],
-            "description": "Tạo hạn mức 1.000.000 đ cho danh mục ăn uống, gắn ví A.",
+            "description": "",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1247,20 +746,21 @@
               ]
             },
             "url": {
-              "raw": "{{base_url}}/api/v1/budgets/",
+              "raw": "{{base_url}}/api/v1/users/profile/",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "api",
                 "v1",
-                "budgets",
+                "users",
+                "profile",
                 ""
               ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Ngân Sách Ăn Uống Tháng này\",\n  \"categoryId\": \"{{category_id}}\",\n  \"amount\": \"1000000.00\",\n  \"loop\": false,\n  \"fromDate\": \"2026-06-01\",\n  \"toDate\": \"2026-06-30\",\n  \"note\": \"Hạn mức tối đa cho ăn uống\",\n  \"wallets\": [\n    \"{{wallet_a_id}}\"\n  ]\n}",
+              "raw": "{\n  \"email\": \"leminhdang@uit.edu.vn\",\n  \"name\": \"Lê Minh Đăng Updated\",\n  \"phoneNumber\": \"0909123456\",\n  \"address\": \"Q.1, TP.HCM\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1271,11 +771,377 @@
           "response": []
         },
         {
-          "name": "34. Xem chi tiết ngân sách",
+          "name": "Xem danh sách danh mục",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Xem cấu hình 1 ngân sách.",
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem chi tiết danh mục",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/{{category_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                "{{category_id}}",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem danh sách ví",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallets",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem chi tiết ví",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/{{wallet_a_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallets",
+                "{{wallet_a_id}}",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sửa thông tin ví",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/{{wallet_a_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallets",
+                "{{wallet_a_id}}",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Techcombank Updated\",\n  \"type\": \"ATM\",\n  \"amount\": \"5000000.00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xóa ví",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/wallets/{{wallet_b_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "wallets",
+                "{{wallet_b_id}}",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem lịch sử giao dịch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem chi tiết giao dịch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/{{transaction_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "{{transaction_id}}",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sửa giao dịch",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/{{transaction_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "{{transaction_id}}",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": \"{{wallet_a_id}}\",\n  \"categoryId\": \"{{category_id}}\",\n  \"amount\": \"800000.00\",\n  \"type\": \"expense\",\n  \"note\": \"Sửa lại\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xóa giao dịch (hoàn ví)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/transactions/{{transaction_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "{{transaction_id}}",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem danh sách ngân sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/budgets/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "budgets",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem chi tiết ngân sách",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1303,11 +1169,11 @@
           "response": []
         },
         {
-          "name": "35. Sửa ngân sách",
+          "name": "Sửa ngân sách",
           "request": {
             "method": "PUT",
             "header": [],
-            "description": "Cập nhật hạn mức.",
+            "description": "",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1344,11 +1210,11 @@
           "response": []
         },
         {
-          "name": "36. Xóa ngân sách",
+          "name": "Xóa ngân sách",
           "request": {
             "method": "DELETE",
             "header": [],
-            "description": "Xóa ngân sách.",
+            "description": "",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1374,61 +1240,13 @@
             }
           },
           "response": []
-        }
-      ]
-    },
-    {
-      "name": "6. Cảnh báo Tài chính (4 API)",
-      "item": [
-        {
-          "name": "37. Xem danh sách cảnh báo (Auto ID)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "var d = pm.response.json();",
-                  "if (d.id) { pm.collectionVariables.set('notification_id', d.id); console.log('Auto saved notification_id: ' + d.id); }"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "description": "Xem tất cả thông báo cảnh báo ngân sách.\n⚠️ Cần có cảnh báo trong hệ thống (chạy request 22 trước khi ngân sách < 10%).",
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{access_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/notifications/",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "notifications",
-                ""
-              ]
-            }
-          },
-          "response": []
         },
         {
-          "name": "38. Xem chi tiết cảnh báo",
+          "name": "Xem chi tiết cảnh báo",
           "request": {
             "method": "GET",
             "header": [],
-            "description": "Xem 1 thông báo.\n⚠️ Cần notification_id từ request 37.",
+            "description": "",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1456,11 +1274,11 @@
           "response": []
         },
         {
-          "name": "39. Đánh dấu đã đọc 1 thông báo",
+          "name": "Đánh dấu đã đọc 1 thông báo",
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Đánh dấu 1 thông báo đã đọc.\n⚠️ Cần notification_id từ request 37.",
+            "description": "",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1489,11 +1307,11 @@
           "response": []
         },
         {
-          "name": "40. Đánh dấu tất cả đã đọc",
+          "name": "Đánh dấu tất cả đã đọc",
           "request": {
             "method": "POST",
             "header": [],
-            "description": "Đánh dấu tất cả thông báo đã đọc.",
+            "description": "",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -1521,26 +1339,320 @@
           "response": []
         }
       ]
-    }
-  ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
     },
     {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          ""
-        ]
-      }
+      "name": "API bổ sung — Admin",
+      "item": [
+        {
+          "name": "Đăng nhập Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var d = pm.response.json();",
+                  "if (d.access) { pm.collectionVariables.set('admin_token', d.access); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "",
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/login/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "login",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"admin@uit.edu.vn\",\n  \"password\": \"admin123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Danh sách tài khoản",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "admin",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Tạo tài khoản",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var d = pm.response.json();",
+                  "if (d.id) { pm.collectionVariables.set('admin_user_id', d.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/admin/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "admin",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@test.com\",\n  \"password\": \"123123123a\",\n  \"name\": \"User Moi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Xem chi tiết tài khoản",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/admin/{{admin_user_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "admin",
+                "{{admin_user_id}}",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Sửa tài khoản",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/admin/{{admin_user_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "admin",
+                "{{admin_user_id}}",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@test.com\",\n  \"name\": \"Updated Name\",\n  \"phoneNumber\": \"0999888777\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Xóa tài khoản",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/admin/{{admin_user_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "admin",
+                "{{admin_user_id}}",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Sửa danh mục",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/{{category_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                "{{category_id}}",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ăn uống (admin sửa)\",\n  \"type\": \"expense\",\n  \"parentId\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "[Admin] Xóa danh mục",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "description": "",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/{{category_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "categories",
+                "{{category_id}}",
+                ""
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
   "variable": [
@@ -1560,6 +1672,11 @@
       "type": "string"
     },
     {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
       "key": "wallet_a_id",
       "value": "",
       "type": "string"
@@ -1571,6 +1688,11 @@
     },
     {
       "key": "category_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "income_category_id",
       "value": "",
       "type": "string"
     },
